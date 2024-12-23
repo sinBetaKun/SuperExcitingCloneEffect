@@ -88,9 +88,9 @@ namespace SuperExcitingCloneEffect.CloneController
 
         [Display(GroupName = "描画", Name = "合成モード")]
         [EnumComboBox]
-        public BlendCCE BlendMode { get => blendMode; set { Set(ref blendMode, value); } }
+        public BlendSECE BlendMode { get => blendMode; set { Set(ref blendMode, value); } }
 
-        BlendCCE blendMode = BlendCCE.SourceOver;
+        BlendSECE blendMode = BlendSECE.SourceOver;
 
         [Display(GroupName = "値の依存", Name = "X/Y/Z", Description = "X/Y/Z")]
         [ToggleSlider]

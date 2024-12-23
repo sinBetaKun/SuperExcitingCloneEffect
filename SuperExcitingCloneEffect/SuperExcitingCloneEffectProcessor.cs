@@ -128,135 +128,135 @@ namespace SuperExcitingCloneEffect
                         // var vec2 = CloneNodes[i].Shift;
                         switch (CloneNodes[i].BlendMode)
                         {
-                            case BlendCCE.SourceOver:
+                            case BlendSECE.SourceOver:
                                 dc.DrawImage(output, compositeMode: CompositeMode.SourceOver);
                                 break;
 
-                            case BlendCCE.Plus:
+                            case BlendSECE.Plus:
                                 dc.DrawImage(output, compositeMode: CompositeMode.Plus);
                                 break;
 
-                            case BlendCCE.DestinationOver:
+                            case BlendSECE.DestinationOver:
                                 dc.DrawImage(output, compositeMode: CompositeMode.DestinationOver);
                                 break;
 
-                            case BlendCCE.DestinationOut:
+                            case BlendSECE.DestinationOut:
                                 dc.DrawImage(output, compositeMode: CompositeMode.DestinationOut);
                                 break;
 
-                            case BlendCCE.SourceAtop:
+                            case BlendSECE.SourceAtop:
                                 dc.DrawImage(output, compositeMode: CompositeMode.SourceAtop);
                                 break;
 
-                            case BlendCCE.XOR:
+                            case BlendSECE.XOR:
                                 dc.DrawImage(output, compositeMode: CompositeMode.Xor);
                                 break;
 
-                            case BlendCCE.MaskInverseErt:
+                            case BlendSECE.MaskInverseErt:
                                 dc.DrawImage(output, compositeMode: CompositeMode.MaskInverseErt);
                                 break;
 
-                            case BlendCCE.Multiply:
+                            case BlendSECE.Multiply:
                                 dc.BlendImage(output, BlendMode.Multiply, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Screen:
+                            case BlendSECE.Screen:
                                 dc.BlendImage(output, BlendMode.Screen, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Darken:
+                            case BlendSECE.Darken:
                                 dc.BlendImage(output, BlendMode.Darken, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Lighten:
+                            case BlendSECE.Lighten:
                                 dc.BlendImage(output, BlendMode.Lighten, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Dissolve:
+                            case BlendSECE.Dissolve:
                                 dc.BlendImage(output, BlendMode.Dissolve, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.ColorBurn:
+                            case BlendSECE.ColorBurn:
                                 dc.BlendImage(output, BlendMode.ColorBurn, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.LinearBurn:
+                            case BlendSECE.LinearBurn:
                                 dc.BlendImage(output, BlendMode.LinearBurn, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.DarkerColor:
+                            case BlendSECE.DarkerColor:
                                 dc.BlendImage(output, BlendMode.DarkerColor, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.LighterColor:
+                            case BlendSECE.LighterColor:
                                 dc.BlendImage(output, BlendMode.LighterColor, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.ColorDodge:
+                            case BlendSECE.ColorDodge:
                                 dc.BlendImage(output, BlendMode.ColorDodge, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.LinearDodge:
+                            case BlendSECE.LinearDodge:
                                 dc.BlendImage(output, BlendMode.LinearDodge, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Overlay:
+                            case BlendSECE.Overlay:
                                 dc.BlendImage(output, BlendMode.Overlay, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.SoftLight:
+                            case BlendSECE.SoftLight:
                                 dc.BlendImage(output, BlendMode.SoftLight, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.HardLight:
+                            case BlendSECE.HardLight:
                                 dc.BlendImage(output, BlendMode.HardLight, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.VividLight:
+                            case BlendSECE.VividLight:
                                 dc.BlendImage(output, BlendMode.VividLight, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.LinearLight:
+                            case BlendSECE.LinearLight:
                                 dc.BlendImage(output, BlendMode.LinearLight, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.PinLight:
+                            case BlendSECE.PinLight:
                                 dc.BlendImage(output, BlendMode.PinLight, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.HardMix:
+                            case BlendSECE.HardMix:
                                 dc.BlendImage(output, BlendMode.HardMix, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Difference:
+                            case BlendSECE.Difference:
                                 dc.BlendImage(output, BlendMode.Difference, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Exclusion:
+                            case BlendSECE.Exclusion:
                                 dc.BlendImage(output, BlendMode.Exclusion, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Hue:
+                            case BlendSECE.Hue:
                                 dc.BlendImage(output, BlendMode.Hue, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Saturation:
+                            case BlendSECE.Saturation:
                                 dc.BlendImage(output, BlendMode.Saturation, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Color:
+                            case BlendSECE.Color:
                                 dc.BlendImage(output, BlendMode.Color, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Luminosity:
+                            case BlendSECE.Luminosity:
                                 dc.BlendImage(output, BlendMode.Luminosity, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Subtract:
+                            case BlendSECE.Subtract:
                                 dc.BlendImage(output, BlendMode.Subtract, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
 
-                            case BlendCCE.Division:
+                            case BlendSECE.Division:
                                 dc.BlendImage(output, BlendMode.Division, null, null, InterpolationMode.MultiSampleLinear);
                                 break;
                         }
@@ -286,7 +286,7 @@ namespace SuperExcitingCloneEffect
             {
                 for (int i = 0; i < numOfClones; i++)
                 {
-                    if (CloneNodes[i].Update(item.Clones[i], length, frame, fps))
+                    if (CloneNodes[i].UpdateParams(item.Clones[i], length, frame, fps))
                     {
                         isOld = true;
                     }
@@ -303,7 +303,7 @@ namespace SuperExcitingCloneEffect
             }
             var sortedCloneNodes = CloneNodes.OrderBy(node => node.ParentPath.Count);
             foreach (var cloneNode in sortedCloneNodes)
-                cloneNode.CommitOutput(input, timeLineItemSourceDescription);
+                cloneNode.UpdateOutput(input, timeLineItemSourceDescription);
 
         }
 

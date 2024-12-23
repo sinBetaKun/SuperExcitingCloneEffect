@@ -2,7 +2,7 @@
 
 namespace SuperExcitingCloneEffect
 {
-    public enum BlendCCE
+    public enum BlendSECE
     {
         [Display(Name = "普通", Description = "普通")]
         SourceOver,
