@@ -67,9 +67,9 @@ namespace SuperExcitingCloneEffect
             foreach (var cloneNode in CloneNodes)
             {
                 cloneNode.ParentPath = [cloneNode];
-                ((cloneNode.TagName == cloneNode.Parent)? independent:
-                    ((cloneNode.Parent == string.Empty)? parents: children))
-                    .Add(cloneNode);
+                if (cloneNode.TagName == cloneNode.Parent) independent.Add(cloneNode);
+                else if (cloneNode.Parent == string.Empty) parents.Add(cloneNode);
+                else children.Add(cloneNode);
                 /*if (cloneNode.Parent == string.Empty)
                 {
                     if (cloneNode.TagName == string.Empty || cloneNode.TagName == cloneNode.Parent) independent.Add(cloneNode);
@@ -78,7 +78,6 @@ namespace SuperExcitingCloneEffect
                 else
                 {
                     children.Add(cloneNode);
-                    numOfChildren++;
                 }*/
             }
             int numOfChildren = children.Count;
@@ -94,7 +93,7 @@ namespace SuperExcitingCloneEffect
 
                     if (matched.Any())
                     {
-                        children[i].ParentPath = matched.First().ParentPath.Insert(0, matched.First());
+                        children[i].ParentPath.AddRange(matched.First().ParentPath);
                         parents.Add(children[i]);
                         children.RemoveAt(i);
                     }
@@ -286,7 +285,7 @@ namespace SuperExcitingCloneEffect
             {
                 for (int i = 0; i < numOfClones; i++)
                 {
-                    if (CloneNodes[i].UpdateParams(item.Clones[i], length, frame, fps))
+                    if (CloneNodes[i].UpdateParams(devices, item.Clones[i], length, frame, fps))
                     {
                         isOld = true;
                     }

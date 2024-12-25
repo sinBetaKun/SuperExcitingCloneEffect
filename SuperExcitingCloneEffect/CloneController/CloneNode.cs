@@ -11,6 +11,7 @@ using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Player.Video.Effects;
 using YukkuriMovieMaker.Player.Video;
 using System.Numerics;
+using Newtonsoft.Json.Linq;
 
 namespace SuperExcitingCloneEffect.CloneController
 {
@@ -23,17 +24,21 @@ namespace SuperExcitingCloneEffect.CloneController
         readonly Transform3D renderEffect;
         readonly Opacity opacityEffect;
         public ID2D1Image? Output;
+        private ID2D1Bitmap empty;
         ID2D1Image renderOutput;
         private bool disposedValue = false;
+        private bool wasEmpty = true;
+        private DrawDescription drawDescription = new(
+            default, default, new Vector2(1f, 1f), default, Matrix4x4.Identity, InterpolationMode.Linear, 1.0, false, []);
 
-        ParamsOfCloneNode Params;
+        readonly ParamsOfCloneNode Params;
 
         public bool Appear => Params.Appear;
         public BlendSECE BlendMode => Params.BlendMode;
         public string TagName => Params.TagName;
         public string Parent => Params.Parent;
 
-        public ImmutableList<CloneNode> ParentPath { get; set; } = [];
+        public List<CloneNode> ParentPath { get; set; } = [];
 
         public CloneNode(IGraphicsDevicesAndContext devices, CloneBlock block, long length, long frame, int fps)
         {
@@ -49,6 +54,9 @@ namespace SuperExcitingCloneEffect.CloneController
             opacityEffect = new Opacity(devices.DeviceContext);
             disposer.Collect(opacityEffect);
 
+            empty = devices.DeviceContext.CreateEmptyBitmap();
+            disposer.Collect(empty);
+
             using (var image = transform.Output)
                 cropEffect.SetInput(0, image, true);
 
@@ -61,21 +69,141 @@ namespace SuperExcitingCloneEffect.CloneController
             renderOutput = renderEffect.Output;
             disposer.Collect(renderOutput);
 
-            Output = opacityEffect.Output;
-            disposer.Collect(Output);
+            Output = empty;
 
-            Params = new(block, length, frame, fps);
+            Params = new(devices, block, length, frame, fps);
         }
 
-        public bool UpdateParams(CloneBlock block, long length, long frame, int fps)
+        public bool UpdateParams(IGraphicsDevicesAndContext devices, CloneBlock block, long length, long frame, int fps)
         {
-            return Params.Update(block, length, frame, fps);
+            return Params.Update(devices, block, length, frame, fps);
         }
 
-
-        public bool UpdateOutput(CloneBlock block, long length, long frame, int fps)
+        public void UpdateOutput(ID2D1Image? input, TimelineItemSourceDescription timeLineItemSourceDescription)
         {
-            return Params.Update(block, length, frame, fps);
+            if (input == null)
+            {
+                if (!wasEmpty)
+                {
+                    Output = empty;
+                    wasEmpty = true;
+                }
+
+                return;
+            }
+
+            Double3 draw = new(), draw2 = new();
+            Double2 trigon = new();
+            double rotate = 0.0, scale = 1.0, opacity = 1.0, rotate2, scale2;
+            bool xyzDependent, rotateDependent, scaleDependent, opacityDependent, mirrorDependent, mirror = false;
+            xyzDependent = rotateDependent = scaleDependent = opacityDependent = mirrorDependent = true;
+            foreach (var node in ParentPath)
+            {
+                rotate2 = node.Params.Rotate * Math.PI / 180.0;
+                scale2 = node.Params.Scale / 100.0;
+
+                if (xyzDependent)
+                {
+                    trigon.X = Math.Cos(rotate2);
+                    trigon.Y = Math.Sin(rotate2);
+                    draw.X *= (scaleDependent ? scale2 : 1) * ((node.Params.Mirror && mirrorDependent) ? -1 : 1);
+                    draw.Y *= scaleDependent ? scale2 : 1;
+                    draw.Z *= scaleDependent ? scale2 : 1;
+                    draw2.X = trigon.X * draw.X + trigon.Y * draw.Y;
+                    draw2.Y = trigon.Y * draw.X + trigon.X * draw.Y;
+                    draw2.Z = draw.Z;
+
+                    draw.X = draw2.X + (node.Params.Draw.X + (node.Params.KeepPlace ? node.Params.Center.X : 0.0));
+                    draw.Y = draw2.Y + (node.Params.Draw.Y + (node.Params.KeepPlace ? node.Params.Center.Y : 0.0));
+                    draw.Z = draw2.Z + node.Params.Draw.Z;
+
+                    xyzDependent = node.Params.XYZDependent;
+                }
+
+                if (scaleDependent)
+                {
+                    scale *= scale2;
+                    scaleDependent = node.Params.RotateDependent;
+                }
+
+                if (opacityDependent)
+                {
+                    opacity *= node.Params.Opacity / 100.0;
+                    scaleDependent = node.Params.RotateDependent;
+                }
+
+                if (rotateDependent)
+                {
+                    rotate += node.Params.Rotate;
+                    rotateDependent = node.Params.RotateDependent;
+                }
+
+                if (mirrorDependent)
+                {
+                    mirror ^= node.Params.Mirror;
+                    mirrorDependent = node.Params.MirrorDependent;
+                }
+            }
+
+            
+            drawDescription = new DrawDescription(
+                new Vector3((float)draw.X, (float)draw.Y, (float)draw.Z),
+                default(Vector2),
+                new Vector2((float)(scale * Params.ExpXY.X / 100.0), (float)(scale * Params.ExpXY.Y / 100.0)),
+                new Vector3(0f, 0f, (float)rotate),
+                Matrix4x4.Identity,
+                InterpolationMode.Linear,
+                opacity,
+                mirror,
+                ImmutableList.Create(default(ReadOnlySpan<VideoEffectController>))
+                );
+            UseProcessors(input, timeLineItemSourceDescription);
+            Vector3 draw3 = drawDescription.Draw;
+            Vector2 zoom = drawDescription.Zoom;
+            Vector3 rotation = drawDescription.Rotation;
+            Matrix4x4 camera = drawDescription.Camera;
+            bool invert = drawDescription.Invert;
+            Vector2 centerPoint = drawDescription.CenterPoint;
+            AffineTransform2DInterpolationMode interPolationMode = drawDescription.ZoomInterpolationMode.ToTransform2D();
+            Transform3DInterpolationMode interPolationMode2 = drawDescription.ZoomInterpolationMode.ToTransform3D();
+            transform.InterPolationMode = interPolationMode;
+            transform.TransformMatrix = Matrix3x2.CreateTranslation(-1 * new Vector2((float)Params.Center.X, (float)Params.Center.Y)) * Matrix3x2.CreateScale(zoom.X, zoom.Y);
+            renderEffect.InterPolationMode = interPolationMode2;
+            renderEffect.TransformMatrix = (
+                invert ? Matrix4x4.CreateScale(-1f, 1f, 1f, new Vector3(centerPoint, 0f)) : Matrix4x4.Identity)
+                * Matrix4x4.CreateRotationZ(MathF.PI * rotation.Z / 180f)
+                * Matrix4x4.CreateRotationY(MathF.PI * (0f - rotation.Y) / 180f)
+                * Matrix4x4.CreateRotationX(MathF.PI * (0f - rotation.X) / 180f)
+                * Matrix4x4.CreateTranslation(draw3)
+                * camera
+                * new Matrix4x4(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, -0.001f, 0f, 0f, 0f, 1f);
+
+            Apply(devices.DeviceContext);
+            opacityEffect.Value = (float)drawDescription.Opacity;
+
+            if (wasEmpty)
+            {
+                Output = opacityEffect.Output;
+                wasEmpty = false;
+            }
+        }
+
+        private void UseProcessors(ID2D1Image input, TimelineItemSourceDescription timeLineItemSourceDescription)
+        {
+            ID2D1Image input2 = input;
+            foreach (var e_EP in Params.E_EPs)
+            {
+                if (e_EP.Item1.IsEnabled)
+                {
+                    IVideoEffectProcessor item = e_EP.Item2;
+                    item.SetInput(input2);
+                    EffectDescription effectDescription = new EffectDescription(timeLineItemSourceDescription, drawDescription, 0);
+                    drawDescription = item.Update(effectDescription);
+                    input2 = item.Output;
+                }
+            }
+
+            transform.SetInput(0, input2, true);
         }
 
         void ClearEffectChain()
@@ -101,7 +229,7 @@ namespace SuperExcitingCloneEffect.CloneController
         const float D3D11_FTOI_INSTRUCTION_MAX_INPUT = 2.1474836E+09f;
         const float D3D11_FTOI_INSTRUCTION_MIN_INPUT = -2.1474836E+09f;
 
-        public void Apply(ID2D1DeviceContext deviceContext)
+        void Apply(ID2D1DeviceContext deviceContext)
         {
             //transform3dエフェクトの出力画像1pxあたりの入力サイズが4096pxを超えるとエラーになる
             //エラー時には出力サイズがD3D11_FTOI_INSTRUCTION_MAX_INPUTになるため、cropエフェクトを使用し入力サイズを4096pxに制限する
@@ -119,127 +247,5 @@ namespace SuperExcitingCloneEffect.CloneController
             }
         }
         #endregion
-    }
-
-    namespace YukkuriMovieMaker.Player.Video.Effects
-    {
-        internal class DrawLazyEffectEffect(IGraphicsDevicesAndContext devices, Project.Effects.DrawLazyEffectEffect item) : VideoEffectProcessorBase(devices)
-        {
-            readonly IGraphicsDevicesAndContext devices = devices;
-            AffineTransform2D zoomEffect;
-            Crop cropEffect;
-            Transform3D renderEffect;
-            ColorMatrix opacityEffect;
-            ID2D1Image renderOutput;
-
-            bool isFirstUpdate = true;
-            Vector3 draw;
-            Vector2 zoom;
-            Vector3 rotation;
-            Matrix4x4 camera;
-            AffineTransform2DInterpolationMode interPolationMode2d;
-            Transform3DInterpolationMode interPolationMode3d;
-            float opacity;
-            bool isInverted;
-            Vector2 centerPoint;
-
-            public override DrawDescription Update(EffectDescription effectDescription)
-            {
-                var draw = effectDescription.DrawDescription.Draw;
-                var zoom = effectDescription.DrawDescription.Zoom;
-                var rotation = effectDescription.DrawDescription.Rotation;
-                var camera = effectDescription.DrawDescription.Camera;
-                var opacity = (float)effectDescription.DrawDescription.Opacity;
-                var isInverted = effectDescription.DrawDescription.Invert;
-                var centerPoint = effectDescription.DrawDescription.CenterPoint;
-
-                var interPolationMode2d = effectDescription.DrawDescription.ZoomInterpolationMode.ToTransform2D();
-                var interPolationMode3d = effectDescription.DrawDescription.ZoomInterpolationMode.ToTransform3D();
-
-                if (!item.IsXYZ)
-                    draw = new Vector3();
-                if (!item.IsZoom)
-                    zoom = new Vector2(1, 1);
-                if (!item.IsRotation)
-                    rotation = new Vector3();
-                if (!item.IsCamera)
-                    camera = Matrix4x4.Identity;
-                if (!item.IsOpacity)
-                    opacity = 1;
-
-                if (isFirstUpdate || this.zoom != zoom)
-                    zoomEffect.TransformMatrix = Matrix3x2.CreateScale(zoom);
-                if (isFirstUpdate || this.interPolationMode2d != interPolationMode2d)
-                    zoomEffect.InterPolationMode = interPolationMode2d;
-                if (isFirstUpdate || this.interPolationMode3d != interPolationMode3d)
-                    renderEffect.InterPolationMode = interPolationMode3d;
-                if (isFirstUpdate || this.rotation != rotation || this.draw != draw || this.camera != camera || this.isInverted != isInverted || this.centerPoint != centerPoint)
-                {
-                    renderEffect.TransformMatrix =
-                        (isInverted ? Matrix4x4.CreateScale(-1, 1, 1, new Vector3(centerPoint, 0)) : Matrix4x4.Identity)
-                        * Matrix4x4.CreateRotationZ(MathF.PI * rotation.Z / 180f)
-                        * Matrix4x4.CreateRotationY(MathF.PI * -rotation.Y / 180f)
-                        * Matrix4x4.CreateRotationX(MathF.PI * -rotation.X / 180f)
-                        * Matrix4x4.CreateTranslation(draw)
-                        * camera
-                        * new Matrix4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -1 / 1000f, 0, 0, 0, 1);
-                }
-
-                Apply(devices.DeviceContext, cropEffect, renderOutput);
-
-                if (isFirstUpdate || this.opacity != opacity)
-                {
-                    opacityEffect.Matrix = new Matrix5x4()
-                    {
-                        M11 = 1,
-                        M12 = 0,
-                        M13 = 0,
-                        M14 = 0,
-
-                        M21 = 0,
-                        M22 = 1,
-                        M23 = 0,
-                        M24 = 0,
-
-                        M31 = 0,
-                        M32 = 0,
-                        M33 = 1,
-                        M34 = 0,
-
-                        M41 = 0,
-                        M42 = 0,
-                        M43 = 0,
-                        M44 = opacity,
-
-                        M51 = 0,
-                        M52 = 0,
-                        M53 = 0,
-                        M54 = 0,
-                    };
-                }
-
-                isFirstUpdate = false;
-                this.draw = draw;
-                this.zoom = zoom;
-                this.rotation = rotation;
-                this.camera = camera;
-                this.interPolationMode2d = interPolationMode2d;
-                this.interPolationMode3d = interPolationMode3d;
-                this.opacity = opacity;
-                this.isInverted = isInverted;
-                this.centerPoint = centerPoint;
-
-                var desc = effectDescription.DrawDescription;
-                return desc with
-                {
-                    Draw = item.IsXYZ ? new() : desc.Draw,
-                    Zoom = item.IsZoom ? new(1, 1) : desc.Zoom,
-                    Rotation = item.IsRotation ? new() : desc.Rotation,
-                    Camera = item.IsCamera ? Matrix4x4.Identity : desc.Camera,
-                    Opacity = item.IsOpacity ? 1 : desc.Opacity,
-                    Invert = !item.IsInvert && desc.Invert,
-                };
-            }
-        }
     }
 }
