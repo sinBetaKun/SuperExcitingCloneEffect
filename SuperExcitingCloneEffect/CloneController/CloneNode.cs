@@ -12,6 +12,7 @@ using YukkuriMovieMaker.Player.Video.Effects;
 using YukkuriMovieMaker.Player.Video;
 using System.Numerics;
 using Newtonsoft.Json.Linq;
+using YukkuriMovieMaker.Plugin.Effects;
 
 namespace SuperExcitingCloneEffect.CloneController
 {
@@ -39,6 +40,7 @@ namespace SuperExcitingCloneEffect.CloneController
         public string Parent => Params.Parent;
 
         public List<CloneNode> ParentPath { get; set; } = [];
+        public List<(IVideoEffect, IVideoEffectProcessor)> E_EPs { get; set; } = [];
 
         public CloneNode(IGraphicsDevicesAndContext devices, CloneBlock block, long length, long frame, int fps)
         {
@@ -77,6 +79,34 @@ namespace SuperExcitingCloneEffect.CloneController
         public bool UpdateParams(IGraphicsDevicesAndContext devices, CloneBlock block, long length, long frame, int fps)
         {
             return Params.Update(devices, block, length, frame, fps);
+        }
+
+        void Update_E_EPs()
+        {
+            var effects = (from node in ParentPath select node.Params.Effects).SelectMany(i => i);
+
+            var disposedIndex = from e_ep in E_EPs
+                                where !effects.Contains(e_ep.Item1)
+                                select E_EPs.IndexOf(e_ep) into i
+                                orderby i descending
+                                select i;
+            foreach (int index in disposedIndex)
+            {
+                (IVideoEffect, IVideoEffectProcessor) e_ep = E_EPs[index];
+                e_ep.Item2.ClearInput();
+                e_ep.Item2.Dispose();
+                E_EPs.RemoveAt(index);
+            }
+
+            List<IVideoEffect> keeped = E_EPs.Select(((IVideoEffect, IVideoEffectProcessor) e_ep) => e_ep.Item1).ToList();
+            List<(IVideoEffect, IVideoEffectProcessor)> newE_EPs = new(effects.Count());
+            foreach (IVideoEffect item2 in effects)
+            {
+                int index = keeped.IndexOf(item2);
+                newE_EPs.Add((index < 0) ? (item2, item2.CreateVideoEffect(devices)) : E_EPs[index]);
+            }
+
+            E_EPs = newE_EPs;
         }
 
         public void UpdateOutput(ID2D1Image? input, TimelineItemSourceDescription timeLineItemSourceDescription)
@@ -145,17 +175,19 @@ namespace SuperExcitingCloneEffect.CloneController
                 }
             }
 
-            
+            /*
+             * それぞれのノードのエフェクト数をたよりに、E_EPsの入力出力を上手く制御する。 
+             * */
             drawDescription = new DrawDescription(
                 new Vector3((float)draw.X, (float)draw.Y, (float)draw.Z),
-                default(Vector2),
+                default,
                 new Vector2((float)(scale * Params.ExpXY.X / 100.0), (float)(scale * Params.ExpXY.Y / 100.0)),
                 new Vector3(0f, 0f, (float)rotate),
                 Matrix4x4.Identity,
                 InterpolationMode.Linear,
                 opacity,
                 mirror,
-                ImmutableList.Create(default(ReadOnlySpan<VideoEffectController>))
+                []
                 );
             UseProcessors(input, timeLineItemSourceDescription);
             Vector3 draw3 = drawDescription.Draw;
@@ -172,8 +204,8 @@ namespace SuperExcitingCloneEffect.CloneController
             renderEffect.TransformMatrix = (
                 invert ? Matrix4x4.CreateScale(-1f, 1f, 1f, new Vector3(centerPoint, 0f)) : Matrix4x4.Identity)
                 * Matrix4x4.CreateRotationZ(MathF.PI * rotation.Z / 180f)
-                * Matrix4x4.CreateRotationY(MathF.PI * (0f - rotation.Y) / 180f)
-                * Matrix4x4.CreateRotationX(MathF.PI * (0f - rotation.X) / 180f)
+                * Matrix4x4.CreateRotationY(MathF.PI * -rotation.Y / 180f)
+                * Matrix4x4.CreateRotationX(MathF.PI * -rotation.X / 180f)
                 * Matrix4x4.CreateTranslation(draw3)
                 * camera
                 * new Matrix4x4(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, -0.001f, 0f, 0f, 0f, 1f);
@@ -191,13 +223,16 @@ namespace SuperExcitingCloneEffect.CloneController
         private void UseProcessors(ID2D1Image input, TimelineItemSourceDescription timeLineItemSourceDescription)
         {
             ID2D1Image input2 = input;
-            foreach (var e_EP in Params.E_EPs)
+            /*
+             * それぞれのノードのエフェクト数をたよりに、E_EPsの入力出力を上手く制御する。 
+             * */
+            foreach (var e_EP in E_EPs)
             {
                 if (e_EP.Item1.IsEnabled)
                 {
                     IVideoEffectProcessor item = e_EP.Item2;
                     item.SetInput(input2);
-                    EffectDescription effectDescription = new EffectDescription(timeLineItemSourceDescription, drawDescription, 0);
+                    EffectDescription effectDescription = new(timeLineItemSourceDescription, drawDescription, 0);
                     drawDescription = item.Update(effectDescription);
                     input2 = item.Output;
                 }
