@@ -6,11 +6,23 @@
              xmlns:local="clr-namespace:SuperExcitingCloneEffect.CloneController"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type={x:Type local:CloneBlock}}">
-    <Grid>
-        <Border BorderBrush="#FF808080" BorderThickness="1">
+    <Grid Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <!-- デフォルトで表示 -->
+                <Setter Property="Margin" Value="10,0,0,0" />
+                <!-- str が空文字列または null の場合、非表示 -->
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Selected}" Value="True">
+                        <Setter Property="Margin" Value="0,0,0,0" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
+        <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
             <StackPanel Margin="4,4,4,4" Orientation="Vertical">
                 <WrapPanel>
-                    <Border BorderBrush="#FF808080" BorderThickness="2" VerticalAlignment="Center">
+                    <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" VerticalAlignment="Center" BorderThickness="2">
                         <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
                             <CheckBox Margin="3,3,3,3" VerticalAlignment="Top" Width="15" Height="15" HorizontalAlignment="Left"
                                       IsChecked="{Binding Appear, Mode=OneWay}" Unchecked="Update_CheckBox" Checked="Update_CheckBox"
