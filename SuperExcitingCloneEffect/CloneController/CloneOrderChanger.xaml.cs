@@ -58,11 +58,11 @@ namespace SuperExcitingCloneEffect.CloneController
             EndEdit?.Invoke(this, e);
         }
 
-        private void Scissors_Clicked(object sender, RoutedEventArgs e)
+        private void Cut_Clicked(object sender, RoutedEventArgs e)
         {
             if (DataContext is CloneOrderChangerViewModel viewModel)
             {
-                viewModel.ScissorsFunc();
+                viewModel.CutFunc();
             }
         }
 

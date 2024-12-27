@@ -12,10 +12,25 @@
                 <WrapPanel>
                     <Border BorderBrush="#FF808080" BorderThickness="2" VerticalAlignment="Center">
                         <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
-                            <CheckBox Margin="2,3,5,0" VerticalAlignment="Top" Width="15" Height="15" HorizontalAlignment="Left"
+                            <CheckBox Margin="3,3,3,3" VerticalAlignment="Top" Width="15" Height="15" HorizontalAlignment="Left"
                                       IsChecked="{Binding Appear, Mode=OneWay}" Unchecked="Update_CheckBox" Checked="Update_CheckBox"
                                       ToolTip="描画するか否かを切り替えられます。"/>
                             <StackPanel Orientation="Horizontal">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <!-- デフォルトで表示 -->
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <!-- str が空文字列または null の場合、非表示 -->
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TagName}" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding TagName}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
                                 <TextBlock Text="タグ" Margin="5,0,3,0" VerticalAlignment="Top" FontSize="15"/>
                                 <Border  Margin="3,0,10,0" Background="#60808080" BorderThickness="1" Height="20"
                                          VerticalAlignment="Top">
@@ -35,6 +50,21 @@
                         </Border>
                     </StackPanel>
                     <StackPanel Margin="10,0,0,0" VerticalAlignment="Center" Orientation="Horizontal">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <!-- デフォルトで表示 -->
+                                <Setter Property="Visibility" Value="Visible" />
+                                <!-- str が空文字列または null の場合、非表示 -->
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Parent}" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Parent}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
                         <TextBlock Text="親" VerticalAlignment="Top"/>
                         <Border Margin="5,0,0,0" Background="#60808080" BorderThickness="1" Height="16"
                                 VerticalAlignment="Top">
@@ -43,6 +73,21 @@
                         </Border>
                     </StackPanel>
                     <StackPanel Margin="10,0,0,0" VerticalAlignment="Center" Orientation="Horizontal">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <!-- デフォルトで表示 -->
+                                <Setter Property="Visibility" Value="Visible" />
+                                <!-- str が空文字列または null の場合、非表示 -->
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Comment}" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Comment}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
                         <TextBlock Text="備考" VerticalAlignment="Top"/>
                         <Border Margin="5,0,0,0" Background="#60808080" BorderThickness="1" Height="16"
                                 VerticalAlignment="Top">

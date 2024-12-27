@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SuperExcitingCloneEffect.CloneController;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,7 +10,7 @@ using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Player.Video;
 using YukkuriMovieMaker.Plugin.Effects;
 
-namespace SuperExcitingCloneEffect.CloneController
+namespace SuperExcitingCloneEffect.NodeObject
 {
     internal class ParamsOfCloneNode
     {
@@ -31,11 +32,12 @@ namespace SuperExcitingCloneEffect.CloneController
         public bool RotateDependent { get; set; }
         public bool MirrorDependent { get; set; }
         public bool EffectXYZDependent { get; set; }
-        public bool EffectScaleDependent { get; set; }
+        public bool EffectZoomDependent { get; set; }
         public bool EffectOpacityDependent { get; set; }
         public bool EffectRotateDependent { get; set; }
         public bool EffectMirrorDependent { get; set; }
-        public DependentMode EffectDependentMode { get; set; }
+        public bool EffectCameraDependent { get; set; }
+        public bool EffectUnlazyDependent { get; set; }
         public ImmutableList<IVideoEffect> Effects { get; set; }
 
         public ParamsOfCloneNode(IGraphicsDevicesAndContext devices, CloneBlock block, long length, long frame, int fps)
@@ -67,12 +69,13 @@ namespace SuperExcitingCloneEffect.CloneController
             OpacityDependent = block.OpacityDependent;
             RotateDependent = block.RotateDependent;
             MirrorDependent = block.MirrorDependent;
-            EffectDependentMode = block.EffectDependentMode;
             EffectXYZDependent = block.EffectXYZDependent;
-            EffectScaleDependent = block.EffectScaleDependent;
+            EffectZoomDependent = block.EffectZoomDependent;
             EffectOpacityDependent = block.EffectOpacityDependent;
             EffectRotateDependent = block.EffectRotateDependent;
             EffectMirrorDependent = block.EffectMirrorDependent;
+            EffectCameraDependent = block.EffectCameraDependent;
+            EffectUnlazyDependent = block.EffectUnlazyDependent;
             Effects = block.Effects;
         }
 
@@ -106,21 +109,23 @@ namespace SuperExcitingCloneEffect.CloneController
             var rotateDependent = block.RotateDependent;
             var mirrorDependent = block.MirrorDependent;
             var effectXYZDependent = block.EffectXYZDependent;
-            var effectScaleDependent = block.EffectScaleDependent;
+            var effectScaleDependent = block.EffectZoomDependent;
             var effectRotateDependent = block.EffectRotateDependent;
             var effectOpacityDependent = block.EffectOpacityDependent;
+            var effectCameraDependent = block.EffectCameraDependent;
             var effectMirrorDependent = block.EffectMirrorDependent;
-            var effectDependentMode = block.EffectDependentMode;
+            var effectUnlazyDependent = block.EffectUnlazyDependent;
             var effects = block.Effects;
 
-            if (Appear != appear || BlendMode != blendMode || Draw != draw || Opacity != opacity || Rotate != rotate || Mirror != mirror
+            if (Appear != appear || BlendMode != blendMode || Draw != draw || Scale != scale || Opacity != opacity || Rotate != rotate || Mirror != mirror
                 || Center != center || KeepPlace != keepPlace || ExpXY != expXY || TagName != tagName || Parent != parent
 
                 || XYZDependent != xyzDependent || ScaleDependent != scaleDependent || OpacityDependent != opacityDependent
                 || RotateDependent != rotateDependent || MirrorDependent != mirrorDependent
 
-                || EffectXYZDependent != effectXYZDependent || EffectScaleDependent != effectScaleDependent || EffectRotateDependent != effectRotateDependent
-                || EffectOpacityDependent != effectOpacityDependent || EffectMirrorDependent != effectMirrorDependent || EffectDependentMode != effectDependentMode
+                || EffectXYZDependent != effectXYZDependent || EffectZoomDependent != effectScaleDependent || EffectRotateDependent != effectRotateDependent
+                || EffectOpacityDependent != effectOpacityDependent || EffectMirrorDependent != effectMirrorDependent || EffectCameraDependent != effectCameraDependent
+                || EffectUnlazyDependent != effectUnlazyDependent
                 || effects.Count > 0 || effects.Count != Effects.Count)
             {
                 Appear = appear;
@@ -141,10 +146,11 @@ namespace SuperExcitingCloneEffect.CloneController
                 RotateDependent = rotateDependent;
                 MirrorDependent = mirrorDependent;
                 EffectXYZDependent = effectXYZDependent;
-                EffectScaleDependent = effectScaleDependent;
+                EffectZoomDependent = effectScaleDependent;
                 EffectOpacityDependent = effectOpacityDependent;
                 EffectMirrorDependent = effectMirrorDependent;
-                EffectDependentMode = effectDependentMode;
+                EffectCameraDependent = effectCameraDependent;
+                EffectUnlazyDependent = effectUnlazyDependent;
                 Effects = effects;
                 return true;
             }

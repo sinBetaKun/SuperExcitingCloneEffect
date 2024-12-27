@@ -43,7 +43,7 @@ namespace SuperExcitingCloneEffect.CloneController
         /// <summary>
         /// 右クリックメニューで「切り取り」を選択したときの処理
         /// </summary>
-        public void ScissorsFunc()
+        public void CutFunc()
         {
             BeginEdit?.Invoke(this, EventArgs.Empty);
             CopyFunc();

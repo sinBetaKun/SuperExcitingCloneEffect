@@ -1,4 +1,4 @@
-﻿using SuperExcitingCloneEffect.CloneController;
+﻿using SuperExcitingCloneEffect.NodeObject;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,15 +70,6 @@ namespace SuperExcitingCloneEffect
                 if (cloneNode.TagName == cloneNode.Parent) independent.Add(cloneNode);
                 else if (cloneNode.Parent == string.Empty) parents.Add(cloneNode);
                 else children.Add(cloneNode);
-                /*if (cloneNode.Parent == string.Empty)
-                {
-                    if (cloneNode.TagName == string.Empty || cloneNode.TagName == cloneNode.Parent) independent.Add(cloneNode);
-                    else parents.Add(cloneNode);
-                }
-                else
-                {
-                    children.Add(cloneNode);
-                }*/
             }
             int numOfChildren = children.Count;
 
@@ -124,7 +115,6 @@ namespace SuperExcitingCloneEffect
                 {
                     if (CloneNodes[i].Output is ID2D1Image output)
                     {
-                        // var vec2 = CloneNodes[i].Shift;
                         switch (CloneNodes[i].BlendMode)
                         {
                             case BlendSECE.SourceOver:

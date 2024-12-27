@@ -7,6 +7,13 @@
              xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance Type={x:Type local:CloneOrderChangerViewModel}}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ContentMenuIcon.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="200"/>
@@ -26,11 +33,12 @@
                 </ListBox.ItemTemplate>
                 <ListBox.ContextMenu>
                     <ContextMenu IsOpen="{Binding ContextMenuIsOpen}">
-                        <MenuItem Header="切り取り" IsEnabled="{Binding SomeBlockSelected}" Click ="Scissors_Clicked"/>
-                        <MenuItem Header="コピー" IsEnabled="{Binding SomeBlockSelected}" Click="Copy_Clicked"/>
-                        <MenuItem Header="貼り付け" IsEnabled="{Binding PasteEnable}" Click="Paste_Clicked"/>
-                        <MenuItem Header="複製" IsEnabled="{Binding SomeBlockSelected}" Click="Duplication_Clicked"/>
-                        <MenuItem Header="削除" IsEnabled="{Binding SomeBlockSelected}" Click="Remove_Clicked"/>
+                        <MenuItem Header="切り取り" IsEnabled="{Binding SomeBlockSelected}" Click ="Cut_Clicked" Icon="{StaticResource Cut}"/>
+                        <MenuItem Header="コピー" IsEnabled="{Binding SomeBlockSelected}" Click="Copy_Clicked" Icon="{StaticResource Copy}"/>
+                        <MenuItem Header="貼り付け" IsEnabled="{Binding PasteEnable}" Click="Paste_Clicked" Icon="{StaticResource Paste}"/>
+                        <MenuItem Header="複製" IsEnabled="{Binding SomeBlockSelected}" Click="Duplication_Clicked" Icon="{StaticResource Duplicate}"/>
+                        <Separator />
+                        <MenuItem Header="削除" IsEnabled="{Binding SomeBlockSelected}" Click="Remove_Clicked" Icon="━"/>
                     </ContextMenu>
                 </ListBox.ContextMenu>
             </ListBox>

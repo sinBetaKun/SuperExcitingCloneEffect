@@ -115,7 +115,7 @@ namespace SuperExcitingCloneEffect.CloneController
         [Display(GroupName = "値の依存", Name = "左右反転", Description = "左右反転")]
         [ToggleSlider]
         public bool MirrorDependent { get => mirrorDependent; set => Set(ref mirrorDependent, value); }
-        bool mirrorDependent = false;
+        bool mirrorDependent = true;
 
         [Display(GroupName = "中心位置", Name = "X")]
         [AnimationSlider("F1", "px", -500, 500)]
@@ -138,37 +138,42 @@ namespace SuperExcitingCloneEffect.CloneController
         [AnimationSlider("F1", "%", 0, 200)]
         public Animation Exp_Y { get; } = new Animation(100, 0, 5000);
 
-        [Display(GroupName = "パーツ個別エフェクトの依存", Name = "X/Y/Z", Description = "X/Y/Z")]
+        [Display(GroupName = "クローン個別エフェクトの依存", Name = "X/Y/Z", Description = "X/Y/Z")]
         [ToggleSlider]
         public bool EffectXYZDependent { get => effectXYZDependent; set => Set(ref effectXYZDependent, value); }
         bool effectXYZDependent = true;
 
-        [Display(GroupName = "パーツ個別エフェクトの依存", Name = "拡大率", Description = "拡大率")]
+        [Display(GroupName = "クローン個別エフェクトの依存", Name = "拡大率", Description = "拡大率")]
         [ToggleSlider]
-        public bool EffectScaleDependent { get => effectScaleDependent; set => Set(ref effectScaleDependent, value); }
-        bool effectScaleDependent = true;
+        public bool EffectZoomDependent { get => effectZoomDependent; set => Set(ref effectZoomDependent, value); }
+        bool effectZoomDependent = true;
 
-        [Display(GroupName = "パーツ個別エフェクトの依存", Name = "不透明度", Description = "不透明度")]
+        [Display(GroupName = "クローン個別エフェクトの依存", Name = "不透明度", Description = "不透明度")]
         [ToggleSlider]
         public bool EffectOpacityDependent { get => effectOpacityDependent; set => Set(ref effectOpacityDependent, value); }
         bool effectOpacityDependent = true;
 
-        [Display(GroupName = "パーツ個別エフェクトの依存", Name = "回転角", Description = "回転角")]
+        [Display(GroupName = "クローン個別エフェクトの依存", Name = "回転角", Description = "回転角")]
         [ToggleSlider]
         public bool EffectRotateDependent { get => effectRotateDependent; set => Set(ref effectRotateDependent, value); }
         bool effectRotateDependent = true;
 
-        [Display(GroupName = "パーツ個別エフェクトの依存", Name = "左右反転", Description = "左右反転")]
+        [Display(GroupName = "クローン個別エフェクトの依存", Name = "左右反転", Description = "左右反転")]
         [ToggleSlider]
         public bool EffectMirrorDependent { get => effectMirrorDependent; set => Set(ref effectMirrorDependent, value); }
-        bool effectMirrorDependent = false;
+        bool effectMirrorDependent = true;
 
-        [Display(GroupName = "パーツ個別エフェクトの依存", Name = "依存モード")]
-        [EnumComboBox]
-        public DependentMode EffectDependentMode { get => effectDependentMode; set => Set(ref effectDependentMode, value); }  
-        DependentMode effectDependentMode = DependentMode.ParentWithLazyEffect;
+        [Display(GroupName = "クローン個別エフェクトの依存", Name = "カメラ", Description = "カメラ")]
+        [ToggleSlider]
+        public bool EffectCameraDependent { get => effectCameraDependent; set => Set(ref effectCameraDependent, value); }
+        bool effectCameraDependent = true;
 
-        [Display(GroupName = "パーツ個別エフェクト", Name = "")]
+        [Display(GroupName = "クローン個別エフェクトの依存", Name = "非遅延エフェクト", Description = "非遅延エフェクト")]
+        [ToggleSlider]
+        public bool EffectUnlazyDependent { get => effectUnlazyDependent; set => Set(ref effectUnlazyDependent, value); }
+        bool effectUnlazyDependent = true;
+
+        [Display(GroupName = "クローン個別エフェクト", Name = "")]
         [VideoEffectSelector(PropertyEditorSize = PropertyEditorSize.FullWidth)]
         public ImmutableList<IVideoEffect> Effects { get => effects; set => Set(ref effects, value); }
         ImmutableList<IVideoEffect> effects = [];
@@ -201,11 +206,12 @@ namespace SuperExcitingCloneEffect.CloneController
             RotateDependent = original.RotateDependent;
             MirrorDependent = original.MirrorDependent;
             EffectXYZDependent = original.EffectXYZDependent;
-            EffectScaleDependent = original.EffectScaleDependent;
+            EffectZoomDependent = original.EffectZoomDependent;
             EffectOpacityDependent = original.EffectOpacityDependent;
             EffectRotateDependent = original.EffectRotateDependent;
             EffectMirrorDependent = original.EffectMirrorDependent;
-            EffectDependentMode = original.EffectDependentMode;
+            EffectCameraDependent = original.EffectCameraDependent;
+            EffectUnlazyDependent = original.EffectUnlazyDependent;
             try
             {
                 string effectsStr = JsonConvert.SerializeObject(original.Effects, Newtonsoft.Json.Formatting.Indented, GetJsonSetting);
