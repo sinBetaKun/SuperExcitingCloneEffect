@@ -223,9 +223,9 @@ namespace SuperExcitingCloneEffect.NodeObject
                 
                 if (effectRotateDependent)
                 {
-                    draw.X = drawDescription.Rotation.X;
-                    draw.Y = drawDescription.Rotation.Y;
-                    draw.Z = drawDescription.Rotation.Z;
+                    rotate.X = drawDescription.Rotation.X;
+                    rotate.Y = drawDescription.Rotation.Y;
+                    rotate.Z = drawDescription.Rotation.Z;
                     effectRotateDependent = node.Params.EffectRotateDependent;
                 }
                 

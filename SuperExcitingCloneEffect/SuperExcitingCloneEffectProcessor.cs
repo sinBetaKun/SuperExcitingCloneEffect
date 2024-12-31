@@ -13,6 +13,7 @@ namespace SuperExcitingCloneEffect
 {
     internal class SuperExcitingCloneEffectProcessor : IVideoEffectProcessor
     {
+        readonly DisposeCollector disposer = new();
         readonly SuperExcitingCloneEffect item;
         readonly AffineTransform2D transformEffect;
         IGraphicsDevicesAndContext devices;
@@ -29,11 +30,13 @@ namespace SuperExcitingCloneEffect
         public SuperExcitingCloneEffectProcessor(IGraphicsDevicesAndContext devices, SuperExcitingCloneEffect item)
         {
             this.item = item;
-
             this.devices = devices;
             transformEffect = new AffineTransform2D(devices.DeviceContext);//Outputのインスタンスを固定するために、間にエフェクトを挟む
+            disposer.Collect(transformEffect);
             Output = transformEffect.Output;//EffectからgetしたOutputは必ずDisposeする必要がある。Effect側では開放されない。
+            disposer.Collect(Output);
             empty = devices.DeviceContext.CreateEmptyBitmap();
+            disposer.Collect(empty);
         }
 
         public DrawDescription Update(EffectDescription effectDescription)
@@ -42,7 +45,7 @@ namespace SuperExcitingCloneEffect
             var length = effectDescription.ItemDuration.Frame;
             var fps = effectDescription.FPS;
 
-            if (updateClonesValues(frame, length, fps))
+            if (UpdateClonesValues(frame, length, fps))
             {
                 commandList?.Dispose();
 
@@ -259,7 +262,7 @@ namespace SuperExcitingCloneEffect
             transformEffect.SetInput(0, commandList, true);
         }
 
-        private bool updateClonesValues(long frame, long length, int fps)
+        private bool UpdateClonesValues(long frame, long length, int fps)
         {
             bool isOld = false;
 
@@ -334,9 +337,8 @@ namespace SuperExcitingCloneEffect
         {
             commandList?.Dispose();//最後のUpdateで作成したCommandListを破棄
             transformEffect.SetInput(0, null, true);//EffectのInputは必ずnullに戻す。
-            transformEffect.Dispose();
+            disposer.Dispose();
             RemoveNodes(0);
-            Output.Dispose();//EffectからgetしたOutputは必ずDisposeする必要がある。Effect側では開放されない。
         }
 
     }

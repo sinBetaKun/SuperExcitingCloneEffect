@@ -28,7 +28,7 @@ namespace SuperExcitingCloneEffect.CloneController
             get => selectedCloneIndex;
             set
             {
-                Clones.Where(i => i.Selected).ToList().ForEach(i => i.Selected = false);
+                if (selectedCloneIndex > -1) Clones[selectedCloneIndex].Selected = false;
                 SomeBlockSelected = value > -1;
                 if (SomeBlockSelected) Clones[value].Selected = true;
                 Set(ref selectedCloneIndex, value);
@@ -227,6 +227,7 @@ namespace SuperExcitingCloneEffect.CloneController
             if (!Clones.SequenceEqual(values))
             {
                 Clones = [.. values];
+                Clones.Where(i => i.Selected).ToImmutableList().ForEach(i => i.Selected = false);
             }
 
             SomeBlockSelected = !Clones.IsEmpty;

@@ -6,14 +6,16 @@
              xmlns:local="clr-namespace:SuperExcitingCloneEffect.CloneController"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type={x:Type local:CloneBlock}}">
-    <Grid Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
+    <Grid>
         <Grid.Style>
             <Style TargetType="Grid">
                 <!-- デフォルトで表示 -->
-                <Setter Property="Margin" Value="10,0,0,0" />
+                <Setter Property="Margin" Value="6,0,0,0" />
+                <Setter Property="Background" Value="#0000"/>
                 <!-- str が空文字列または null の場合、非表示 -->
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding Selected}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
                         <Setter Property="Margin" Value="0,0,0,0" />
                     </DataTrigger>
                 </Style.Triggers>
