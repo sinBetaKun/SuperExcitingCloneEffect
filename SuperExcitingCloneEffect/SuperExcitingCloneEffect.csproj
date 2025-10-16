@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+		<TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<FileVersion>1.2.0.0</FileVersion>
+    </PropertyGroup>
+
+	<ItemGroup>
+		<Reference Include="SharpGen.Runtime">
+			<HintPath>$(YMM4DirPath)SharpGen.Runtime.dll</HintPath>
+		</Reference>
+		<Reference Include="Vortice.Direct2D1">
+			<HintPath>$(YMM4DirPath)Vortice.Direct2D1.dll</HintPath>
+		</Reference>
+		<Reference Include="Vortice.DirectX">
+			<HintPath>$(YMM4DirPath)Vortice.DirectX.dll</HintPath>
+		</Reference>
+		<Reference Include="Vortice.Mathematics">
+			<HintPath>$(YMM4DirPath)Vortice.Mathematics.dll</HintPath>
+		</Reference>
+		<Reference Include="YukkuriMovieMaker.Controls">
+			<HintPath>$(YMM4DirPath)YukkuriMovieMaker.Controls.dll</HintPath>
+		</Reference>
+		<Reference Include="YukkuriMovieMaker.Plugin">
+			<HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Properties\TextResource.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>TextResource.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Properties\TextResource.resx">
+	    <Generator>PublicResXFileCodeGenerator</Generator>
+	    <LastGenOutput>TextResource.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+	
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="mkdir &quot;$(YMM4DirPath)user\plugin\$(ProjectName)&quot; &gt; NUL 2&gt;&amp;1&#xD;&#xA;copy &quot;$(TargetPath)&quot; &quot;E:\sinBeta\app\YukkuriMovieMaker_v4\user\plugin\$(ProjectName)\&quot;" />
+	</Target>
+</Project>
