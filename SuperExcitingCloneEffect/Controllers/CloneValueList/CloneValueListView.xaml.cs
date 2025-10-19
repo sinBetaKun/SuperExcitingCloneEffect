@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using YukkuriMovieMaker.Commons;
 
 namespace SuperExcitingCloneEffect.Controllers.CloneValueList
@@ -15,6 +16,8 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
     {
         public event EventHandler? BeginEdit;
         public event EventHandler? EndEdit;
+
+        private List<IManagedItem> _clipboad = [];
 
         public CloneValueListView()
         {
@@ -57,21 +60,32 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 RemoveButton.IsEnabled = true;
                 UpButton.IsEnabled = false;
                 DownButton.IsEnabled = false;
+                CutButton.IsEnabled = true;
+                CopyButton.IsEnabled = true;
+                PasteButton.IsEnabled = false;
+                DuplicateButton.IsEnabled = false;
             }
             else
             {
                 AddButton.IsEnabled = true;
                 GroupAddButton.IsEnabled = true;
+                PasteButton.IsEnabled = _clipboad.Count > 0;
 
                 if (selecteds.Count < 1)
                 {
                     RemoveButton.IsEnabled = false;
                     UpButton.IsEnabled = false;
                     DownButton.IsEnabled = false;
+                    CutButton.IsEnabled = false;
+                    CopyButton.IsEnabled = false;
+                    DuplicateButton.IsEnabled = false;
                 }
                 else
                 {
                     RemoveButton.IsEnabled = true;
+                    CutButton.IsEnabled = true;
+                    CopyButton.IsEnabled = true;
+                    DuplicateButton.IsEnabled = true;
 
                     if (vm.CanMoveUpItem())
                         UpButton.IsEnabled = true;
@@ -108,7 +122,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 
         private void List_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            var scrollViewer = CloneValueListViewModel.FindVisualChild<ScrollViewer>(ItemList);
+            var scrollViewer = FindVisualChild<ScrollViewer>(ItemList);
             if (scrollViewer == null) return;
 
             e.Handled = true;
@@ -134,6 +148,25 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 // まだスクロール可能 → 自分で処理
                 scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
             }
+        }
+        
+        public static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+
+                if (child is T t)
+                    return t;
+                else
+                {
+                    T? result = FindVisualChild<T>(child);
+
+                    if (result != null)
+                        return result;
+                }
+            }
+            return null;
         }
 
         private void ManagedItemView_GroupOpened(object sender, EventArgs e)
@@ -216,6 +249,76 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             vm.MoveDownItem();
+        }
+
+        private void CutButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not CloneValueListViewModel vm)
+                return;
+
+            _clipboad = GetCloneOfSelected();
+            vm.RemoveItems(GetSelecteds());
+        }
+
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            _clipboad = GetCloneOfSelected();
+        }
+
+        private void PasteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not CloneValueListViewModel vm)
+                return;
+
+            vm.InsertItems(GetCloneOfClipboad());
+        }
+
+        private void DuplicateButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not CloneValueListViewModel vm)
+                return;
+
+            vm.InsertItems(GetCloneOfSelected());
+        }
+
+        private List<IManagedItem> GetCloneOfSelected()
+        {
+            List<IManagedItem> list = [];
+
+            foreach (IManagedItem item in GetSelecteds())
+            {
+                if (item is CloneValue cv)
+                {
+                    list.Add(new CloneValue(cv));
+                }
+                else
+                {
+                    CloneGroupValue gv = (CloneGroupValue)item;
+                    list.Add(new CloneGroupValue(gv));
+                }
+            }
+
+            return list;
+        }
+
+        private List<IManagedItem> GetCloneOfClipboad()
+        {
+            List<IManagedItem> list = [];
+
+            foreach (IManagedItem item in _clipboad)
+            {
+                if (item is CloneValue cv)
+                {
+                    list.Add(new CloneValue(cv));
+                }
+                else
+                {
+                    CloneGroupValue gv = (CloneGroupValue)item;
+                    list.Add(new CloneGroupValue(gv));
+                }
+            }
+
+            return list;
         }
     }
 }

@@ -2,8 +2,6 @@
 using SuperExcitingCloneEffect.Interfaces;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Windows;
-using System.Windows.Media;
 using YukkuriMovieMaker.Commons;
 
 namespace SuperExcitingCloneEffect.Controllers.CloneValueList
@@ -44,13 +42,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         public void CopyToOtherItems()
         {
             var otherProperties = _properties.Skip(1);
-            foreach (var property in otherProperties)
-                property.SetValue(
-                    new CloneValueListManager()
-                    {
-                        ManagedItems = ManagedItems,
-                        SelectedManagedItems = [.. Selecteds]
-                    });
+            SetProperties();
         }
 
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -83,6 +75,9 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             {
                 foreach ((ImmutableList<IManagedItem> a, ImmutableList<IManagedItem> b) in groupts1)
                 {
+                    if (a.Count != b.Count)
+                        return false;
+
                     for (int i = 0; i < a.Count; i++)
                     {
                         if (a[i] != b[i])
@@ -101,6 +96,37 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             }
 
             return true;
+        }
+
+        public void SetProperties()
+        {
+            foreach (var property in _properties)
+                property.SetValue(MakeManager());
+        }
+
+        private CloneValueListManager MakeManager()
+        {
+            //List<IManagedItem> list = [];
+
+            //foreach (IManagedItem mi in ManagedItems)
+            //{
+            //    if (mi is CloneValue cv)
+            //    {
+            //        list.Add(new CloneValue(cv));
+            //    }
+            //    else
+            //    {
+            //        CloneGroupValue gv = (CloneGroupValue)mi;
+            //        list.Add(new CloneGroupValue(gv));
+            //    }
+            //}
+
+            return
+                    new CloneValueListManager()
+                    {
+                        ManagedItems = ManagedItems,
+                        SelectedManagedItems = [.. Selecteds]
+                    };
         }
 
         private static ImmutableList<IManagedItem> DeepCloneManagedItems(ImmutableList<IManagedItem> origin)
@@ -141,25 +167,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 gs1 = gs2;
                 gs2 = [];
             }
-        }
-
-        public static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-            {
-                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-
-                if (child is T t)
-                    return t;
-                else
-                {
-                    T? result = FindVisualChild<T>(child);
-
-                    if (result != null)
-                        return result;
-                }
-            }
-            return null;
         }
 
         public void UpdateSource()
@@ -246,6 +253,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             if (SelectedIndex < -1 || SelectedIndex >= Source.Count)
                 return;
 
+            IManagedItem first = items.First();
             int index = SelectedIndex;
 
             BeginEdit?.Invoke(this, EventArgs.Empty);
@@ -281,8 +289,9 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 }
             }
 
+            SetProperties();
             UpdateSource();
-            SelectedIndex = index + 1;
+            SelectedIndex = Source.IndexOf(first);
             EndEdit?.Invoke(this, EventArgs.Empty);
         }
 
@@ -300,6 +309,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                     ManagedItems = ManagedItems.Remove(item);
             }
 
+            SetProperties();
             UpdateSource();
             SelectedIndex = (index < Source.Count - 1) ? index : -1;
             EndEdit?.Invoke(this, EventArgs.Empty);
@@ -358,6 +368,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                     .Insert(index2 - 1, target);
             }
 
+            SetProperties();
             UpdateSource();
             SelectedIndex = Source.IndexOf(target);
             _view.UpdateButtons();
@@ -436,6 +447,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 }
             }
 
+            SetProperties();
             UpdateSource();
             SelectedIndex = Source.IndexOf(target);
             _view.UpdateButtons();

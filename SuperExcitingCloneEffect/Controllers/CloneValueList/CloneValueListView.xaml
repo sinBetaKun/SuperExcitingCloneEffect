@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
              xmlns:local="clr-namespace:SuperExcitingCloneEffect.Controllers.CloneValueList"
+             xmlns:resx="clr-namespace:SuperExcitingCloneEffect.Properties"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="400"
              d:DataContext="{d:DesignInstance Type={x:Type local:CloneValueListViewModel}}"
@@ -49,6 +50,26 @@
                             GroupClosed="ManagedItemView_GroupClosed"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="CutButton"
+                                  Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Cut}"
+                                  Click="CutButton_Click"
+                                  Icon="{StaticResource Cut}"/>
+                        <MenuItem x:Name="CopyButton"
+                                  Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Copy}"
+                                  Click="CopyButton_Click"
+                                  Icon="{StaticResource Copy}"/>
+                        <MenuItem x:Name="PasteButton"
+                                  Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Paste}"
+                                  Click="PasteButton_Click"
+                                  Icon="{StaticResource Paste}"/>
+                        <MenuItem x:Name="DuplicateButton"
+                                  Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Duplicate}"
+                                  Click="DuplicateButton_Click"
+                                  Icon="{StaticResource Duplicate}"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
             </ListBox>
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>

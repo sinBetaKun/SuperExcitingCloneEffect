@@ -35,6 +35,19 @@ namespace SuperExcitingCloneEffect.Classes
         public ImmutableList<IVideoEffect> Effects { get => _effects; set => Set(ref _effects, value); }
         private ImmutableList<IVideoEffect> _effects = [];
 
+        public CloneValue()
+        {
+        }
+
+        public CloneValue(CloneValue origin)
+        {
+            Depth = origin.Depth;
+            Hide = origin.Hide;
+            NameTag = origin.NameTag;
+            Comment = origin.Comment;
+            Effects = [.. origin.Effects];
+        }
+
         protected override IEnumerable<IAnimatable> GetAnimatables()
             => [.. Effects];
     }

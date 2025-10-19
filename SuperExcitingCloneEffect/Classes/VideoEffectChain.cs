@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Numerics;
 using Vortice.Direct2D1;
 using Vortice.Direct2D1.Effects;
 using YukkuriMovieMaker.Commons;
@@ -7,29 +8,22 @@ using YukkuriMovieMaker.Plugin.Effects;
 
 namespace SuperExcitingCloneEffect.Classes
 {
-    internal class VideoEffectChainNode
+    internal class VideoEffectChain : IDisposable
     {
         private readonly IGraphicsDevicesAndContext _devices;
         private readonly AffineTransform2D transform;
-        private readonly ID2D1Bitmap empty;
         private ID2D1Image? _input;
-        private bool _isEmpty;
         private List<(IVideoEffect effect, IVideoEffectProcessor processor)> _chain = [];
         private TimelineItemSourceDescription? _lastTimelineSourceDescription;
         private DrawDescription? _lastDrawDescription;
 
-        public ID2D1Image Output => _isEmpty ? empty : _output;
-        private readonly ID2D1Image _output;
+        public ID2D1Image Output;
 
-        public VideoEffectChainNode(IGraphicsDevicesAndContext devices)
+        public VideoEffectChain(IGraphicsDevicesAndContext devices)
         {
             _devices = devices;
             transform = new AffineTransform2D(devices.DeviceContext);
-            _output = transform.Output;
-
-            empty = devices.DeviceContext.CreateEmptyBitmap();
-
-            _isEmpty = true;
+            Output = transform.Output;
         }
 
         private void UpdateChain(ImmutableList<IVideoEffect> effects)
@@ -60,29 +54,19 @@ namespace SuperExcitingCloneEffect.Classes
 
         public void SetInputAndEffects(ID2D1Image? input, ImmutableList<IVideoEffect> effects)
         {
-            this._input = input;
-            if (input == null)
+            _input = input;
+            if (effects.Count > 0)
             {
-                _isEmpty = true;
-                return;
-            }
-            else
-            {
-                if (effects.Count > 0)
-                {
-                    UpdateChain(effects);
+                UpdateChain(effects);
 
-                    if (_lastTimelineSourceDescription is not null && _lastDrawDescription is not null)
-                        UpdateOutputAndDescription(_lastTimelineSourceDescription, _lastDrawDescription);
-                    else
-                        transform.SetInput(0, input, true);
-                }
-                else
+                if (_lastTimelineSourceDescription is not null && _lastDrawDescription is not null)
                 {
-                    transform.SetInput(0, input, true);
+                    UpdateOutputAndDescription(_lastTimelineSourceDescription, _lastDrawDescription);
+                    return;
                 }
-                _isEmpty = false;
             }
+
+            transform.SetInput(0, input, true);
         }
 
         public void ClearChain()
@@ -115,8 +99,7 @@ namespace SuperExcitingCloneEffect.Classes
 
             if (_input == null)
             {
-                _isEmpty = true;
-                return drawDescription;
+                throw new InvalidOperationException("[VideoEffectChain] input is null.");
             }
 
             FrameAndLength fl = new(timelineSourceDescription);
@@ -148,16 +131,14 @@ namespace SuperExcitingCloneEffect.Classes
             }
 
             transform.SetInput(0, image, true);
-            _isEmpty = false;
             return desc;
         }
 
         public void Dispose()
         {
             transform.SetInput(0, null, true);
+            Output.Dispose();
             transform.Dispose();
-            empty.Dispose();
-            _output.Dispose();
 
             _chain.ForEach(i =>
             {

@@ -61,6 +61,42 @@ namespace SuperExcitingCloneEffect.Properties {
         }
         
         /// <summary>
+        ///   コピー に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string CloneValueListView_ContextMenu_Copy {
+            get {
+                return ResourceManager.GetString("CloneValueListView_ContextMenu_Copy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   切り取り に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string CloneValueListView_ContextMenu_Cut {
+            get {
+                return ResourceManager.GetString("CloneValueListView_ContextMenu_Cut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   複製 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string CloneValueListView_ContextMenu_Duplicate {
+            get {
+                return ResourceManager.GetString("CloneValueListView_ContextMenu_Duplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   貼り付け に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string CloneValueListView_ContextMenu_Paste {
+            get {
+                return ResourceManager.GetString("CloneValueListView_ContextMenu_Paste", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   [E01]CommandListが見つかりません。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string Exception_CommandListIsNull {

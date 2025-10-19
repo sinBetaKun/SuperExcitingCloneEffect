@@ -41,7 +41,7 @@
                   Visibility="Hidden"
                   VerticalAlignment="Center"
                   Fill="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
-                  Data="M2,30 L2,0 L15,15 Z"/>
+                  Data="M5,30 L5,0 L15,15 Z"/>
         </Grid>
         <Border Grid.Column="1"
                 Grid.Row="0"

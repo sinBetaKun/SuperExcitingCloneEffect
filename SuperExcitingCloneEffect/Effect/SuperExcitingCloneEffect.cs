@@ -1,8 +1,6 @@
 ﻿using SuperExcitingCloneEffect.Classes;
 using SuperExcitingCloneEffect.Controllers.CloneValueList;
-using SuperExcitingCloneEffect.Interfaces;
 using SuperExcitingCloneEffect.Properties;
-using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Exo;
@@ -20,7 +18,11 @@ namespace SuperExcitingCloneEffect.Effect
 
         [Display]
         [CloneValueList(PropertyEditorSize = PropertyEditorSize.FullWidth)]
-        public CloneValueListManager ListManager { get => _listManager; set => Set(ref _listManager, value); }
+        public CloneValueListManager ListManager
+        {
+            get => _listManager;
+            set => Set(ref _listManager, value);
+        }
         private CloneValueListManager _listManager = new();
 
 

@@ -13,7 +13,7 @@ namespace SuperExcitingCloneEffect.Classes
     {
         [JsonIgnore]
         public bool IsOpened { get => _isOpned; set => Set(ref _isOpned, value); }
-        private bool _isOpned = false;
+        private bool _isOpned = true;
 
         [JsonIgnore]
         public int Depth { get => _depth; set => Set(ref _depth, value); }
@@ -41,6 +41,37 @@ namespace SuperExcitingCloneEffect.Classes
 
         public ImmutableList<IManagedItem> Chirdren { get => _children; set => Set(ref _children, value); }
         private ImmutableList<IManagedItem> _children = [];
+
+        public CloneGroupValue()
+        {
+        }
+
+        public CloneGroupValue(CloneGroupValue origin)
+        {
+            IsOpened = origin.IsOpened;
+            Depth = origin.Depth;
+            Hide = origin.Hide;
+            NameTag = origin.NameTag;
+            Comment = origin.Comment;
+            Effects = [.. origin.Effects];
+
+            List<IManagedItem> children = [];
+
+            foreach (IManagedItem mi in origin.Chirdren)
+            {
+                if (mi is CloneValue cv)
+                {
+                    children.Add(new CloneValue(cv));
+                }
+                else
+                {
+                    CloneGroupValue gv = (CloneGroupValue)mi;
+                    children.Add(new CloneGroupValue(gv));
+                }
+            }
+
+            Chirdren = [.. children];
+        }
 
         protected override IEnumerable<IAnimatable> GetAnimatables()
             => [.. Effects, .. Chirdren];

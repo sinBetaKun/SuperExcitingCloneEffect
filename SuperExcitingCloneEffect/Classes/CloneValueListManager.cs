@@ -7,8 +7,12 @@ namespace SuperExcitingCloneEffect.Classes
 {
     public class CloneValueListManager : Animatable
     {
-        public ImmutableList<IManagedItem> ManagedItems { get => _managedItems; set => Set(ref _managedItems, value); }
-        private ImmutableList<IManagedItem> _managedItems = [];
+        public ImmutableList<IManagedItem> ManagedItems
+        {
+            get => _managedItems;
+            set => Set(ref _managedItems, value);
+        }
+        private ImmutableList<IManagedItem> _managedItems = [new CloneValue()];
 
         [JsonIgnore]
         public ImmutableList<IManagedItem> SelectedManagedItems { get => _selectedManagedItems; set => Set(ref _selectedManagedItems, value); }
