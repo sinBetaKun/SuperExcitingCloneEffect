@@ -17,8 +17,9 @@ namespace SuperExcitingCloneEffect.Effect
         private List<CloneDrawer> _drawers = [];
         private ID2D1CommandList? _commandList;
         private readonly AffineTransform2D _trans;
+        private readonly ID2D1Image _output;
 
-        public ID2D1Image Output => _trans.Output;
+        public ID2D1Image Output => _output;
 
         public SuperExcitingCloneEffectProcessor(IGraphicsDevicesAndContext devices, SuperExcitingCloneEffect item)
         {
@@ -26,6 +27,7 @@ namespace SuperExcitingCloneEffect.Effect
             _item = item;
             _empty = devices.DeviceContext.CreateEmptyBitmap();
             _trans = new(devices.DeviceContext);
+            _output = _trans.Output;
         }
 
         public void SetInput(ID2D1Image? input)
@@ -40,14 +42,7 @@ namespace SuperExcitingCloneEffect.Effect
             List<VideoEffectController> ctrls = [];
 
             foreach (var cd in _drawers)
-            {
-                DrawDescription desc = cd.UpdateOutput(effectDescription);
-
-                if (_item.ListManager.SelectedManagedItems.Contains(cd.Value))
-                {
-                    ctrls.AddRange(desc.Controllers);
-                }
-            }
+                cd.UpdateOutput(effectDescription);
 
             List<CloneDrawer> sortedDrawers = [.. _drawers];
             sortedDrawers.Sort((a, b) => a.M43.CompareTo(b.M43));
@@ -62,7 +57,8 @@ namespace SuperExcitingCloneEffect.Effect
 
             foreach (CloneDrawer cd in sortedDrawers)
             {
-                dc.DrawImage(cd.Output, compositeMode: CompositeMode.SourceOver);
+                if (!cd.GetHide())
+                    dc.DrawImage(cd.Output, compositeMode: CompositeMode.SourceOver);
             }
 
             dc.EndDraw();
@@ -79,67 +75,23 @@ namespace SuperExcitingCloneEffect.Effect
 
         private void UpdateDrawers()
         {
-            List<(CloneGroupValue, List<CloneGroupValue>)> gts1 = [];
-            List<(CloneGroupValue, List<CloneGroupValue>)> gts2 = [];
             List<CloneDrawer> drawers = [];
 
-            foreach (IManagedItem mi in _item.ListManager.ManagedItems)
+            foreach (IManagedItem mi in _item.ManagedItems)
             {
-                if (mi is CloneGroupValue gv)
-                {
-                    gts1.Add((gv, []));
-                }
-                else
-                {
-                    CloneValue cv = (CloneValue)mi;
-
+                if (mi is CloneValue cv)
+                { 
                     if (_drawers.FirstOrDefault(d => d.Value == cv) is CloneDrawer cd1)
                     {
-                        cd1.SetGroupChain([]);
                         drawers.Add(cd1);
                     }
                     else
                     {
                         CloneDrawer cd2 = new(_devices, cv);
-                        cd2.SetInput(_input);
-                        cd2.SetGroupChain([]);
+                        cd2.SetInput(_input);;
                         drawers.Add(cd2);
                     }
                 }
-            }
-
-            while (gts1.Count > 0)
-            {
-                foreach ((CloneGroupValue head, List<CloneGroupValue> list) in gts1)
-                {
-                    foreach (IManagedItem mi in head.Chirdren)
-                    {
-                        if (mi is CloneGroupValue gv)
-                        {
-                            gts2.Add((gv, [head, .. list]));
-                        }
-                        else
-                        {
-                            CloneValue cv = (CloneValue)mi;
-
-                            if (_drawers.FirstOrDefault(d => d.Value == cv) is CloneDrawer cd1)
-                            {
-                                cd1.SetGroupChain([head, .. list]);
-                                drawers.Add(cd1);
-                            }
-                            else
-                            {
-                                CloneDrawer cd2 = new(_devices, cv);
-                                cd2.SetInput(_input);
-                                cd2.SetGroupChain([head, .. list]);
-                                drawers.Add(cd2);
-                            }
-                        }
-                    }
-                }
-
-                gts1 = gts2;
-                gts2 = [];
             }
 
             if (!_drawers.SequenceEqual(drawers))
@@ -162,7 +114,7 @@ namespace SuperExcitingCloneEffect.Effect
         public void Dispose()
         {
             _trans.SetInput(0, null, true);
-            _trans.Output.Dispose();
+            _output.Dispose();
             _trans.Dispose();
             _commandList?.Dispose();
             _drawers.ForEach(d => d.Dispose());

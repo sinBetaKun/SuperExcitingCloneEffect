@@ -47,7 +47,9 @@
                             Binding RelativeSource={RelativeSource AncestorType=ListBoxItem},
                             Path=IsSelected}"
                             GroupOpened="ManagedItemView_GroupOpened"
-                            GroupClosed="ManagedItemView_GroupClosed"/>
+                            GroupClosed="ManagedItemView_GroupClosed"
+                            BeginEdit="PropertiesEditor_BeginEdit" 
+                            EndEdit="PropertiesEditor_EndEdit"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
                 <ListBox.ContextMenu>

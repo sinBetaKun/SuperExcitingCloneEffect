@@ -16,13 +16,17 @@ namespace SuperExcitingCloneEffect.Classes
         private bool _isOpned = true;
 
         [JsonIgnore]
+        public CloneGroupValue? Parent { get => _parent; set => Set(ref _parent, value); }
+        private CloneGroupValue? _parent = null;
+
+        [JsonIgnore]
         public int Depth { get => _depth; set => Set(ref _depth, value); }
         private int _depth;
 
         [Display(GroupName = nameof(TextResource.GroupName_CloneGroupValue), Name = nameof(TextResource.IManagedItem_Hide), ResourceType = typeof(TextResource))]
         [ToggleSlider]
-        public bool Hide { get => _appear; set => Set(ref _appear, value); }
-        private bool _appear = true;
+        public bool Hide { get => _hide; set => Set(ref _hide, value); }
+        private bool _hide = false;
 
         [Display(GroupName = nameof(TextResource.GroupName_CloneGroupValue), Name = nameof(TextResource.IManagedItem_NameTag), ResourceType = typeof(TextResource))]
         [TextEditor]
@@ -39,9 +43,6 @@ namespace SuperExcitingCloneEffect.Classes
         public ImmutableList<IVideoEffect> Effects { get => effects; set => Set(ref effects, value); }
         ImmutableList<IVideoEffect> effects = [];
 
-        public ImmutableList<IManagedItem> Chirdren { get => _children; set => Set(ref _children, value); }
-        private ImmutableList<IManagedItem> _children = [];
-
         public CloneGroupValue()
         {
         }
@@ -53,27 +54,27 @@ namespace SuperExcitingCloneEffect.Classes
             Hide = origin.Hide;
             NameTag = origin.NameTag;
             Comment = origin.Comment;
-            Effects = [.. origin.Effects];
+            Effects = YukkuriMovieMaker.Json.Json.GetClone(origin.Effects)!;
 
-            List<IManagedItem> children = [];
+            //List<IManagedItem> children = [];
 
-            foreach (IManagedItem mi in origin.Chirdren)
-            {
-                if (mi is CloneValue cv)
-                {
-                    children.Add(new CloneValue(cv));
-                }
-                else
-                {
-                    CloneGroupValue gv = (CloneGroupValue)mi;
-                    children.Add(new CloneGroupValue(gv));
-                }
-            }
+            //foreach (IManagedItem mi in origin.Chirdren)
+            //{
+            //    if (mi is CloneValue cv)
+            //    {
+            //        children.Add(new CloneValue(cv));
+            //    }
+            //    else
+            //    {
+            //        CloneGroupValue gv = (CloneGroupValue)mi;
+            //        children.Add(new CloneGroupValue(gv));
+            //    }
+            //}
 
-            Chirdren = [.. children];
+            //Chirdren = [.. children];
         }
 
         protected override IEnumerable<IAnimatable> GetAnimatables()
-            => [.. Effects, .. Chirdren];
+            => [.. Effects];
     }
 }

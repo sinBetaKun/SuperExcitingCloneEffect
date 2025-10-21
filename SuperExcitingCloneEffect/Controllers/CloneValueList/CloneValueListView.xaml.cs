@@ -1,6 +1,7 @@
 ﻿using SuperExcitingCloneEffect.Classes;
 using SuperExcitingCloneEffect.Interfaces;
 using System.Collections.ObjectModel;
+using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -51,7 +52,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             List<IManagedItem> selecteds = GetSelecteds();
-            vm.UpdateSelected(selecteds);
 
             if (selecteds.Count > 1)
             {
@@ -120,6 +120,10 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             EndEdit?.Invoke(this, e);
         }
 
+        /// <summary>
+        /// このプラグインでは使われる場面がない。
+        /// STP に移植するときのためのもの。
+        /// </summary>
         private void List_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             var scrollViewer = FindVisualChild<ScrollViewer>(ItemList);
@@ -149,7 +153,11 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
             }
         }
-        
+
+        /// <summary>
+        /// このプラグインでは使われる場面がない。
+        /// STP に移植するときのためのもの。
+        /// </summary>
         public static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
@@ -283,42 +291,41 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 
         private List<IManagedItem> GetCloneOfSelected()
         {
-            List<IManagedItem> list = [];
+            if (DataContext is not CloneValueListViewModel vm)
+                return [];
 
-            foreach (IManagedItem item in GetSelecteds())
+            HashSet<IManagedItem> hash = [];
+
+            foreach (IManagedItem mi1 in GetSelecteds())
             {
-                if (item is CloneValue cv)
+                List<IManagedItem> list1 = [mi1];
+                List<IManagedItem> list2 = [];
+
+                while (list1.Count > 0)
                 {
-                    list.Add(new CloneValue(cv));
-                }
-                else
-                {
-                    CloneGroupValue gv = (CloneGroupValue)item;
-                    list.Add(new CloneGroupValue(gv));
+                    foreach (IManagedItem mi2 in list1)
+                    {
+                        if (mi2 is CloneGroupValue gv)
+                            list2.AddRange(vm.FindChildren(gv));
+
+                        hash.Add(mi2);
+                    }
+
+                    list1 = list2;
+                    list2 = [];
                 }
             }
 
-            return list;
+            CloneTreeNode tn = new(hash);
+
+            return tn.GetCloneTree().ToList();
         }
 
         private List<IManagedItem> GetCloneOfClipboad()
         {
-            List<IManagedItem> list = [];
+            CloneTreeNode tn = new(_clipboad);
 
-            foreach (IManagedItem item in _clipboad)
-            {
-                if (item is CloneValue cv)
-                {
-                    list.Add(new CloneValue(cv));
-                }
-                else
-                {
-                    CloneGroupValue gv = (CloneGroupValue)item;
-                    list.Add(new CloneGroupValue(gv));
-                }
-            }
-
-            return list;
+            return tn.GetCloneTree().ToList();
         }
     }
 }

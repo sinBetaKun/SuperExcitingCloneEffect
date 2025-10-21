@@ -15,10 +15,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/SuperExcitingCloneEffect;component/XamlDictionaries/MaterialIcons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <Style x:Key="ButtonAppearStyle" TargetType="Button">
+            <Style x:Key="ButtonHideStyle" TargetType="Button">
                 <Setter Property="Content" Value="{StaticResource Visible}"/>
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding Hide, Mode=OneWay}" Value="False">
+                    <DataTrigger Binding="{Binding Hide, Mode=OneWay}" Value="True">
                         <Setter Property="Content" Value="{StaticResource Invisible}"/>
                     </DataTrigger>
                 </Style.Triggers>
@@ -71,7 +71,7 @@
                                 BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
                                 BorderThickness="1">
                             <Button Height="16" Width="16" Margin="2" Background="Transparent" BorderThickness="0"
-                                    Click="Switch_Appear" Style="{StaticResource ButtonAppearStyle}" />
+                                    Click="Switch_Hide" Style="{StaticResource ButtonHideStyle}" />
                         </Border>
                         <TextBlock Text="{x:Static resx:TextResource.IManagedItem_NameTag}"
                                    FontWeight="Bold"

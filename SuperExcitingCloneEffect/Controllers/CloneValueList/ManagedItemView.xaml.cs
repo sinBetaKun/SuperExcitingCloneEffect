@@ -9,18 +9,23 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
     /// <summary>
     /// ManagedItemView.xaml の相互作用ロジック
     /// </summary>
-    public partial class ManagedItemView : UserControl
+    public partial class ManagedItemView : UserControl, IPropertyEditorControl
     {
+        public event EventHandler? BeginEdit;
+        public event EventHandler? EndEdit;
+
         public ManagedItemView()
         {
             InitializeComponent();
         }
 
-        private void Switch_Appear(object sender, RoutedEventArgs e)
+        private void Switch_Hide(object sender, RoutedEventArgs e)
         {
             if (DataContext is IManagedItem mi)
             {
+                BeginEdit?.Invoke(this, e);
                 mi.Hide = !mi.Hide;
+                EndEdit?.Invoke(this, e);
             }
         }
 

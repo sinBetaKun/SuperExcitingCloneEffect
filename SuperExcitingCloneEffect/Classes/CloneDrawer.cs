@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using SuperExcitingCloneEffect.Interfaces;
+using System.Numerics;
 using Vortice.Direct2D1;
 using Vortice.Direct2D1.Effects;
 using YukkuriMovieMaker.Commons;
@@ -10,12 +11,11 @@ namespace SuperExcitingCloneEffect.Classes
 {
     internal class CloneDrawer : IDisposable
     {
-        IGraphicsDevicesAndContext _devices;
+        private readonly IGraphicsDevicesAndContext _devices;
         private ID2D1Image? _input;
-        readonly DisposeCollector _disposer = new();
+        private readonly DisposeCollector _disposer = new();
         private readonly VideoEffectChain _effectChain;
         public CloneValue Value { get; init; }
-        private CloneGroupValue[] _groupChain = [];
 
         private readonly AffineTransform2D _transform;
         private readonly Crop _cropEffect;
@@ -72,18 +72,33 @@ namespace SuperExcitingCloneEffect.Classes
             _input = input;
         }
 
-        public void SetGroupChain(IEnumerable<CloneGroupValue> gvs)
+        public bool GetHide()
         {
-            _groupChain = [.. gvs];
+            if (Value.Hide)
+                return true;
+
+            CloneGroupValue? mi = Value.Parent;
+
+            while (mi is not null)
+            {
+                if (mi.Hide)
+                    return true;
+
+                mi = mi.Parent;
+            }
+
+            return false;
         }
 
-        public DrawDescription UpdateOutput(EffectDescription effectDescription)
+        public void UpdateOutput(EffectDescription effectDescription)
         {
-            List<IVideoEffect> effects = [.. Value.Effects];
+            IManagedItem? mi = Value;
+            List<IVideoEffect> effects = [];
 
-            foreach (CloneGroupValue gv in _groupChain.Reverse())
+            while (mi is not null)
             {
-                effects.AddRange(gv.Effects);
+                effects.AddRange(mi.Effects);
+                mi = mi.Parent;
             }
 
             _effectChain.SetInputAndEffects(_input, [.. effects]);
@@ -121,12 +136,19 @@ namespace SuperExcitingCloneEffect.Classes
             M43 = _renderEffect.TransformMatrix.M43;
             Apply();
             _opacityEffect.Value = (float)drawDescription.Opacity;
+        }
 
-            return drawDescription;
+        private void ClearEffectChain()
+        {
+            _transform.SetInput(0, null, true);
+            _cropEffect.SetInput(0, null, true);
+            _renderEffect.SetInput(0, null, true);
+            _opacityEffect.SetInput(0, null, true);
         }
 
         public void Dispose()
         {
+            ClearEffectChain();
             _disposer.Dispose();
         }
 
