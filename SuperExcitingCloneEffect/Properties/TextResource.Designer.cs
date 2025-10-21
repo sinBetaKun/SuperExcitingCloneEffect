@@ -178,7 +178,7 @@ namespace SuperExcitingCloneEffect.Properties {
         }
         
         /// <summary>
-        ///   超☆エキサイティン複製エフェクト に類似しているローカライズされた文字列を検索します。
+        ///   超！エキサイティン！！複製エフェクト に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string Plugin_Name {
             get {

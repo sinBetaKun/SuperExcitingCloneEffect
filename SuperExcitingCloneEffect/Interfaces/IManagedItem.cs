@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using SuperExcitingCloneEffect.Classes;
+using System.Collections.Immutable;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Plugin.Effects;
 
@@ -7,6 +8,8 @@ namespace SuperExcitingCloneEffect.Interfaces
     public interface IManagedItem : IAnimatable
     {
         public int Depth { get; set; }
+
+        public CloneGroupValue? Parent { get; set; }
 
         public bool Hide { get; set; }
 

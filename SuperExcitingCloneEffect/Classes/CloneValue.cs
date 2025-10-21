@@ -15,10 +15,14 @@ namespace SuperExcitingCloneEffect.Classes
         public int Depth { get => _depth; set => Set(ref _depth, value); }
         private int _depth;
 
+        [JsonIgnore]
+        public CloneGroupValue? Parent { get => _parent; set => Set(ref _parent, value); }
+        private CloneGroupValue? _parent = null;
+
         [Display(GroupName = nameof(TextResource.GroupName_CloneValue), Name = nameof(TextResource.IManagedItem_Hide), ResourceType = typeof(TextResource))]
         [ToggleSlider]
-        public bool Hide { get => _appear; set => Set(ref _appear, value); }
-        private bool _appear = true;
+        public bool Hide { get => _hide; set => Set(ref _hide, value); }
+        private bool _hide = false;
 
         [Display(GroupName = nameof(TextResource.GroupName_CloneValue), Name = nameof(TextResource.IManagedItem_NameTag), ResourceType = typeof(TextResource))]
         [TextEditor]
@@ -45,7 +49,7 @@ namespace SuperExcitingCloneEffect.Classes
             Hide = origin.Hide;
             NameTag = origin.NameTag;
             Comment = origin.Comment;
-            Effects = [.. origin.Effects];
+            Effects = YukkuriMovieMaker.Json.Json.GetClone(origin.Effects)!;
         }
 
         protected override IEnumerable<IAnimatable> GetAnimatables()

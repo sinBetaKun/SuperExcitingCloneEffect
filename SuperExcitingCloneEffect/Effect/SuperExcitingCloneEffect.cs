@@ -1,6 +1,8 @@
 ﻿using SuperExcitingCloneEffect.Classes;
 using SuperExcitingCloneEffect.Controllers.CloneValueList;
+using SuperExcitingCloneEffect.Interfaces;
 using SuperExcitingCloneEffect.Properties;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Exo;
@@ -14,20 +16,16 @@ namespace SuperExcitingCloneEffect.Effect
         isAviUtlSupported: false, ResourceType = typeof(TextResource))]
     public class SuperExcitingCloneEffect : VideoEffectBase
     {
-        public override string Label => TextResource.Plugin_Name + $"[{ListManager.ItemCount()}]";
+        public override string Label => TextResource.Plugin_Name;
 
         [Display]
         [CloneValueList(PropertyEditorSize = PropertyEditorSize.FullWidth)]
-        public CloneValueListManager ListManager
+        public ImmutableList<IManagedItem> ManagedItems
         {
-            get => _listManager;
-            set => Set(ref _listManager, value);
+            get => _managedItems;
+            set => Set(ref _managedItems, value);
         }
-        private CloneValueListManager _listManager = new();
-
-
-        //public ImmutableList<IManagedItem> CloneValues { get => _cloneValues; set => Set(ref _cloneValues, value); }
-        //private ImmutableList<IManagedItem> _cloneValues = [];
+        private ImmutableList<IManagedItem> _managedItems = [new CloneValue()];
 
         public override IEnumerable<string> CreateExoVideoFilters(int keyFrameIndex, ExoOutputDescription exoOutputDescription)
         {
@@ -39,6 +37,6 @@ namespace SuperExcitingCloneEffect.Effect
             return new SuperExcitingCloneEffectProcessor(devices, this);
         }
 
-        protected override IEnumerable<IAnimatable> GetAnimatables() => [ListManager /*.. CloneValues*/];
+        protected override IEnumerable<IAnimatable> GetAnimatables() => [.. ManagedItems];
     }
 }
