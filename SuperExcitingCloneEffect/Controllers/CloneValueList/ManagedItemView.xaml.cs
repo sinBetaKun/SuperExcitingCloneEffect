@@ -84,9 +84,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             if (DataContext is not CloneGroupValue gv)
                 return;
 
-            FolderIcon.Visibility = Visibility;
-            GroupViewChangeButton.Visibility = Visibility;
-
             if (gv.IsOpened)
             {
                 OpenedSign.Visibility = Visibility.Visible;

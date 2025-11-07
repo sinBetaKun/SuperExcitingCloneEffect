@@ -73,6 +73,20 @@ namespace SuperExcitingCloneEffect.Effect
             };
         }
 
+        private List<IManagedItem> GetAncestors(IManagedItem mi1)
+        {
+            List<IManagedItem> list1 = [];
+            IManagedItem mi2 = mi1;
+
+            while (mi2.ParentIndex > -1)
+            {
+                mi2 = _item.ManagedItems[mi2.ParentIndex];
+                list1.Add(mi2);
+            }
+
+            return list1;
+        }
+
         private void UpdateDrawers()
         {
             List<CloneDrawer> drawers = [];
@@ -100,6 +114,9 @@ namespace SuperExcitingCloneEffect.Effect
 
                 foreach (CloneDrawer cd in toDispose)
                     cd.Dispose();
+
+                foreach (CloneDrawer cd in drawers)
+                    cd.SetAncestor(GetAncestors(cd.Value));
 
                 _drawers = drawers;
             }

@@ -15,9 +15,8 @@ namespace SuperExcitingCloneEffect.Classes
         public int Depth { get => _depth; set => Set(ref _depth, value); }
         private int _depth;
 
-        [JsonIgnore]
-        public CloneGroupValue? Parent { get => _parent; set => Set(ref _parent, value); }
-        private CloneGroupValue? _parent = null;
+        public int ParentIndex { get => _parentIndex; set => Set(ref _parentIndex, value); }
+        private int _parentIndex = -1;
 
         [Display(GroupName = nameof(TextResource.GroupName_CloneValue), Name = nameof(TextResource.IManagedItem_Hide), ResourceType = typeof(TextResource))]
         [ToggleSlider]
@@ -46,6 +45,7 @@ namespace SuperExcitingCloneEffect.Classes
         public CloneValue(CloneValue origin)
         {
             Depth = origin.Depth;
+            ParentIndex = origin.ParentIndex;
             Hide = origin.Hide;
             NameTag = origin.NameTag;
             Comment = origin.Comment;

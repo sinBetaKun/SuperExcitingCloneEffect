@@ -15,9 +15,8 @@ namespace SuperExcitingCloneEffect.Classes
         public bool IsOpened { get => _isOpned; set => Set(ref _isOpned, value); }
         private bool _isOpned = true;
 
-        [JsonIgnore]
-        public CloneGroupValue? Parent { get => _parent; set => Set(ref _parent, value); }
-        private CloneGroupValue? _parent = null;
+        public int ParentIndex { get => _parentIndex; set => Set(ref _parentIndex, value); }
+        private int _parentIndex = -1;
 
         [JsonIgnore]
         public int Depth { get => _depth; set => Set(ref _depth, value); }
@@ -50,28 +49,12 @@ namespace SuperExcitingCloneEffect.Classes
         public CloneGroupValue(CloneGroupValue origin)
         {
             IsOpened = origin.IsOpened;
+            ParentIndex = origin.ParentIndex;
             Depth = origin.Depth;
             Hide = origin.Hide;
             NameTag = origin.NameTag;
             Comment = origin.Comment;
             Effects = YukkuriMovieMaker.Json.Json.GetClone(origin.Effects)!;
-
-            //List<IManagedItem> children = [];
-
-            //foreach (IManagedItem mi in origin.Chirdren)
-            //{
-            //    if (mi is CloneValue cv)
-            //    {
-            //        children.Add(new CloneValue(cv));
-            //    }
-            //    else
-            //    {
-            //        CloneGroupValue gv = (CloneGroupValue)mi;
-            //        children.Add(new CloneGroupValue(gv));
-            //    }
-            //}
-
-            //Chirdren = [.. children];
         }
 
         protected override IEnumerable<IAnimatable> GetAnimatables()

@@ -1,5 +1,6 @@
 ﻿using SuperExcitingCloneEffect.Classes;
 using SuperExcitingCloneEffect.Interfaces;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Security.Policy;
 using System.Windows;
@@ -316,16 +317,74 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 }
             }
 
-            CloneTreeNode tn = new(hash);
+            List<IManagedItem> list3 = [.. hash];
+            list3.Sort((a, b) => vm.ManagedItems.IndexOf(a).CompareTo(vm.ManagedItems.IndexOf(b)));
+            List<(IManagedItem, IManagedItem)> list4 = [];
 
-            return tn.GetCloneTree().ToList();
+            foreach (IManagedItem mi1 in list3)
+            {
+                if (mi1.ParentIndex < 0 || mi1.ParentIndex >= vm.ManagedItems.Count)
+                {
+                    if (mi1 is CloneGroupValue gv1)
+                    {
+                        CloneGroupValue gv2 = new(gv1) { ParentIndex = -1 };
+                        list4.Add((mi1, gv2));
+                    }
+                    else
+                    {
+                        CloneValue cv = new((CloneValue)mi1) { ParentIndex = -1 };
+                        list4.Add((mi1, cv));
+                    }
+                }
+                else
+                {
+                    if (list4.Select(item => item.Item1).FirstOrDefault(mi2 => mi2 == vm.ManagedItems[mi1.ParentIndex]) is IManagedItem mi3)
+                    {
+                        int index = list4.Select(item => item.Item1).ToList().IndexOf(mi3);
+
+                        if (mi1 is CloneGroupValue gv1)
+                        {
+                            CloneGroupValue gv2 = new(gv1) { ParentIndex = index };
+                            list4.Add((mi1, gv2));
+                        }
+                        else
+                        {
+                            CloneValue cv = new((CloneValue)mi1) { ParentIndex = index };
+                            list4.Add((mi1, cv));
+                        }
+                    }
+                    else
+                    {
+                        if (mi1 is CloneGroupValue gv1)
+                        {
+                            CloneGroupValue gv2 = new(gv1) { ParentIndex = -1 };
+                            list4.Add((mi1, gv2));
+                        }
+                        else
+                        {
+                            CloneValue cv = new((CloneValue)mi1) { ParentIndex = -1 };
+                            list4.Add((mi1, cv));
+                        }
+                    }
+                }
+            }
+
+            return [.. list4.Select(item => item.Item2)];
         }
 
         private List<IManagedItem> GetCloneOfClipboad()
         {
-            CloneTreeNode tn = new(_clipboad);
+            List<IManagedItem> ret = [];
 
-            return tn.GetCloneTree().ToList();
+            foreach (IManagedItem mi in _clipboad)
+            {
+                if (mi is CloneGroupValue gv)
+                    ret.Add(new CloneGroupValue(gv));
+                else
+                    ret.Add(new CloneValue((CloneValue)mi));
+            }
+
+            return ret;
         }
     }
 }
