@@ -15,6 +15,7 @@ namespace SuperExcitingCloneEffect.Classes
         private ID2D1Image? _input;
         private readonly DisposeCollector _disposer = new();
         private readonly VideoEffectChain _effectChain;
+        private readonly List<IManagedItem> _ancestor = []; // _ancestor[0]が直近の親
         public CloneValue Value { get; init; }
 
         private readonly AffineTransform2D _transform;
@@ -72,34 +73,26 @@ namespace SuperExcitingCloneEffect.Classes
             _input = input;
         }
 
+        public void SetAncestor(IEnumerable<IManagedItem> list)
+        {
+            _ancestor.Clear();
+            _ancestor.AddRange(list);
+        }
+
         public bool GetHide()
         {
             if (Value.Hide)
                 return true;
 
-            CloneGroupValue? mi = Value.Parent;
-
-            while (mi is not null)
-            {
-                if (mi.Hide)
-                    return true;
-
-                mi = mi.Parent;
-            }
-
-            return false;
+            return _ancestor.Any(mi => mi.Hide);
         }
 
         public void UpdateOutput(EffectDescription effectDescription)
         {
-            IManagedItem? mi = Value;
-            List<IVideoEffect> effects = [];
+            List<IVideoEffect> effects = [.. Value.Effects];
 
-            while (mi is not null)
-            {
+            foreach (IManagedItem mi in _ancestor)
                 effects.AddRange(mi.Effects);
-                mi = mi.Parent;
-            }
 
             _effectChain.SetInputAndEffects(_input, [.. effects]);
 

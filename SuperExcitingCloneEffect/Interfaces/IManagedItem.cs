@@ -9,7 +9,7 @@ namespace SuperExcitingCloneEffect.Interfaces
     {
         public int Depth { get; set; }
 
-        public CloneGroupValue? Parent { get; set; }
+        public int ParentIndex { get; set; }
 
         public bool Hide { get; set; }
 

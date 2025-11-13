@@ -2,34 +2,33 @@
 using SuperExcitingCloneEffect.Interfaces;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Runtime.Intrinsics.X86;
 using YukkuriMovieMaker.Commons;
 
 namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 {
     internal class CloneValueListViewModel : Bindable, IPropertyEditorControl, IDisposable
     {
-        private readonly CloneValueListView _view;
         private readonly INotifyPropertyChanged _item;
         private readonly ItemProperty[] _properties;
 
         public event EventHandler? BeginEdit;
         public event EventHandler? EndEdit;
 
-        public ImmutableList<IManagedItem> ManagedItems { get => _managedItems; set => Set(ref _managedItems, value); }
-        private ImmutableList<IManagedItem> _managedItems = [];
+        public List<IManagedItem> ManagedItems { get => _managedItems; set => Set(ref _managedItems, value); }
+        private List<IManagedItem> _managedItems = [];
 
-        public ImmutableList<IManagedItem> Source { get => _source; set => Set(ref _source, value); }
-        private ImmutableList<IManagedItem> _source = [];
+        public List<IManagedItem> Source { get => _source; set => Set(ref _source, value); }
+        private List<IManagedItem> _source = [];
 
         public int SelectedIndex { get => selectedIndex; set => Set(ref selectedIndex, value); }
         int selectedIndex = -1;
 
         private readonly List<CloneGroupValue> _openeds = [];
 
-        public CloneValueListViewModel(ItemProperty[] properties, CloneValueListView view)
+        public CloneValueListViewModel(ItemProperty[] properties)
         {
             _properties = properties;
-            _view = view;
 
             _item = (INotifyPropertyChanged)properties[0].PropertyOwner;
             _item.PropertyChanged += Item_PropertyChanged;
@@ -37,10 +36,12 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             UpdateClones();
         }
 
+
         public void CopyToOtherItems()
         {
             var otherProperties = _properties.Skip(1);
-            SetProperties();
+            foreach (var property in otherProperties)
+                property.SetValue(DeepCloneManagedItems(ManagedItems).ToImmutableList());
         }
 
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -55,7 +56,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 
             if (!ManagedItems.SequenceEqual(list))
             {
-                ManagedItems = DeepCloneManagedItems(list);
+                ManagedItems = [.. list];
             }
 
             int index = SelectedIndex;
@@ -67,14 +68,22 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         public void SetProperties()
         {
             foreach (var property in _properties)
-                property.SetValue(/*DeepCloneManagedItems(ManagedItems)*/ ManagedItems);
+                property.SetValue(DeepCloneManagedItems(ManagedItems).ToImmutableList());
         }
 
-        private static ImmutableList<IManagedItem> DeepCloneManagedItems(ImmutableList<IManagedItem> origin)
+        private static List<IManagedItem> DeepCloneManagedItems(IEnumerable<IManagedItem> origin)
         {
-            CloneTreeNode tree = new(origin);
+            List<IManagedItem> mis = [];
 
-            return [.. tree.GetCloneTree().ToList()];
+            foreach (IManagedItem mi in origin)
+            {
+                if (mi is CloneGroupValue gv)
+                    mis.Add(new CloneGroupValue(gv));
+                else
+                    mis.Add(new CloneValue((CloneValue)mi));
+            }
+
+            return mis;
         }
 
         private void FindOpendGroup()
@@ -91,9 +100,53 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             Source = [.. GetVisibleItem()];
         }
 
-        public List<IManagedItem> GetVisibleItem()
+        public List<IManagedItem> GetVisibleItem(int parentIndex = -1, int depth = 0)
         {
-            return new CloneTreeNode(ManagedItems).GetVisibleNode().ToList();
+            List<IManagedItem> ret = [];
+
+            for (int i = 0; i < ManagedItems.Count; i++)
+            {
+                IManagedItem mi = ManagedItems[i];
+
+                if (mi.ParentIndex == parentIndex)
+                {
+                    ret.Add(mi);
+                    mi.Depth = depth;
+
+                    if (mi is CloneGroupValue gv && gv.IsOpened)
+                        ret.AddRange(GetVisibleItem(i, depth + 1));
+                }
+            }
+
+            return ret;
+        }
+
+        private List<IManagedItem> GetDescendants(IManagedItem mi1)
+        {
+            if (!ManagedItems.Contains(mi1))
+                return [];
+
+            int index1 = ManagedItems.IndexOf(mi1);
+            int index2 = index1 + 1;
+
+            if (index2 == ManagedItems.Count)
+                return [];
+
+            List<IManagedItem> list1 = [];
+
+            while (ManagedItems[index2].ParentIndex == index1)
+            {
+                IManagedItem mi2 = ManagedItems[index2];
+                list1.Add(mi2);
+                List<IManagedItem> list2 = GetDescendants(mi2);
+                list1.AddRange(list2);
+                index2 += list2.Count + 1;
+
+                if (index2 == ManagedItems.Count)
+                    break;
+            }
+
+            return list1;
         }
 
         public void AddOpenedGroup(CloneGroupValue gv)
@@ -109,9 +162,10 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             _openeds.Remove(gv);
             UpdateSource();
         }
+
         public IEnumerable<IManagedItem> FindChildren(CloneGroupValue gv)
         {
-            return ManagedItems.Where(mi => mi.Parent == gv);
+            return ManagedItems.Where(mi => mi.ParentIndex == ManagedItems.IndexOf(gv));
         }
 
         public void InsertItems(List<IManagedItem> items)
@@ -127,23 +181,38 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 
             if (index < 0)
             {
-                ManagedItems = ManagedItems.AddRange(items);
+                foreach (IManagedItem mi in items)
+                    if (mi.ParentIndex > -1)
+                        mi.ParentIndex += ManagedItems.Count;
+
+                ManagedItems.AddRange(items);
                 flag = true;
             }
             else if (Source[index] is CloneGroupValue gv)
             {
-                IManagedItem[] array = [.. FindChildren(gv)];
+                IManagedItem[] children = [.. FindChildren(gv)];
 
-                if (array.Length == 0)
+                if (children.Length == 0)
                 {
-                    foreach (IManagedItem mi in items)
-                        mi.Parent ??= gv;
+                    int index2 = ManagedItems.IndexOf(gv);
 
-                    int index2 = ManagedItems.IndexOf(gv) + array.Length + 1;
-                    if (index2 < ManagedItems.Count)
-                        ManagedItems = ManagedItems.InsertRange(index2, items);
+                    foreach (IManagedItem mi in items)
+                    {
+                        if (mi.ParentIndex < 0)
+                            mi.ParentIndex = index2;
+                        else
+                            mi.ParentIndex += index2 + 1;
+                    }
+
+                    int index3 = ManagedItems.IndexOf(gv) + 1;
+                    if (index3 < ManagedItems.Count)
+                        ManagedItems.InsertRange(index3, items);
                     else
-                        ManagedItems = ManagedItems.AddRange(items);
+                        ManagedItems.AddRange(items);
+
+                    foreach (IManagedItem mi in ManagedItems)
+                        if (mi.ParentIndex > index2)
+                            mi.ParentIndex += items.Count;
 
                     flag = true;
                 }
@@ -152,24 +221,35 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             if (!flag)
             {
                 IManagedItem target = Source[index];
-
-                if (target.Parent is CloneGroupValue gv)
-                    foreach (IManagedItem mi in items)
-                        mi.Parent ??= gv;
-
                 int index2 = ManagedItems.IndexOf(target);
+
+                if (target.ParentIndex > -1 && target.ParentIndex < ManagedItems.Count)
+                {
+                    foreach (IManagedItem mi in items)
+                    {
+                        if (mi.ParentIndex < 0)
+                            mi.ParentIndex = target.ParentIndex;
+                        else
+                            mi.ParentIndex += index2 + 1;
+                    }
+                }
+
+                for (int i = index2 + GetDescendants(target).Count + 1; i < ManagedItems.Count; i++)
+                    if (ManagedItems[i].ParentIndex > -1)
+                        ManagedItems[i].ParentIndex += items.Count;
+
                 if (index2 + 1 == ManagedItems.Count)
-                    ManagedItems = ManagedItems.AddRange(items);
+                    ManagedItems.AddRange(items);
                 else
-                    ManagedItems = ManagedItems.InsertRange(index2 + 1, items);
+                    ManagedItems.InsertRange(index2 + GetDescendants(target).Count + 1, items);
             }
 
             UpdateSource();
-            int index3 = Source.IndexOf(first);
+            int index4 = Source.IndexOf(first);
             SetProperties();
             UpdateSource();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index3;
+            SelectedIndex = index4;
         }
 
         public void RemoveItems(IEnumerable<IManagedItem> items)
@@ -200,45 +280,49 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 }
             }
 
-            foreach (IManagedItem mi in hash)
-                ManagedItems = ManagedItems.Remove(mi);
+            foreach (IManagedItem mi1 in hash)
+            {
+                int index2 = ManagedItems.IndexOf(mi1);
+
+                for (int i = index2; i < ManagedItems.Count; i++)
+                {
+                    IManagedItem mi2 = ManagedItems[i];
+
+                    if (mi2.ParentIndex > index2)
+                        mi2.ParentIndex--;
+                }
+
+                ManagedItems.Remove(mi1);
+            }
 
             UpdateSource();
-            int index2 = (index < Source.Count - 1) ? index : -1;
+            int index3 = (index < Source.Count - 1) ? index : -1;
             SetProperties();
             UpdateSource();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index2;
+            SelectedIndex = index3;
         }
+
+
 
         public bool CanMoveUpItem()
         {
             int index = SelectedIndex;
             IManagedItem target = Source[index];
-
-            if (target.Parent is CloneGroupValue gv)
-            {
-                if (FindChildren(gv).ToList().IndexOf(target) < 1)
-                    return false;
-            }
-            else
-            {
-                if (ManagedItems.IndexOf(target) < 1)
-                    return false;
-            }
-
-            return true;
+            List<IManagedItem> list1 = [.. ManagedItems.Where(mi => mi.ParentIndex == target.ParentIndex)];
+            return list1.IndexOf(target) > 0;
         }
 
         public void MoveUpItem()
         {
-            int index = SelectedIndex;
-            IManagedItem target = Source[index];
+            int index1 = SelectedIndex;
+            IManagedItem target = Source[index1];
 
-            if (target.Parent is CloneGroupValue gv)
+            if (target.ParentIndex > -1 && target.ParentIndex < ManagedItems.Count)
             {
-                if (FindChildren(gv).ToList().IndexOf(target) < 1)
-                    return;
+                if (ManagedItems[target.ParentIndex] is CloneGroupValue gv)
+                    if (FindChildren(gv).ToList().IndexOf(target) < 1)
+                        return;
             }
             else
             {
@@ -247,52 +331,60 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             }
 
             int index2 = ManagedItems.IndexOf(target);
+            List<IManagedItem> list1 = [target, .. GetDescendants(target)];
+            List<IManagedItem> list2 = [.. ManagedItems.Where(mi => mi.ParentIndex == target.ParentIndex)];
+            IManagedItem mi1 = list2[list2.IndexOf(target) - 1];
+            List<IManagedItem> list3 = [mi1, .. GetDescendants(mi1)];
+            int index3 = ManagedItems.IndexOf(mi1);
+
+            for (int i = 1; i < list1.Count; i++)
+                list1[i].ParentIndex -= list3.Count;
+
+            for (int i = 1; i < list3.Count; i++)
+                list3[i].ParentIndex += list1.Count;
 
             BeginEdit?.Invoke(this, EventArgs.Empty);
-            ManagedItems = ManagedItems
-                .Remove(target)
-                .Insert(index2 - 1, target);
+
+            foreach (IManagedItem mi2 in list3)
+                ManagedItems.Remove(mi2);
+
+            foreach (IManagedItem mi2 in list1)
+                ManagedItems.Remove(mi2);
+
+            if (ManagedItems.Count > index3)
+                ManagedItems.InsertRange(index3, [.. list1, .. list3]);
+            else
+                ManagedItems.AddRange([.. list1, .. list3]);
 
             UpdateSource();
-            int index3 = Source.IndexOf(target);
+            int index4 = Source.IndexOf(target);
             SetProperties();
             UpdateSource();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index3;
-            _view.UpdateButtons();
+            SelectedIndex = index4;
         }
 
         public bool CanMoveDownItem()
         {
-
             int index = SelectedIndex;
             IManagedItem target = Source[index];
-
-            if (target.Parent is CloneGroupValue gv)
-            {
-                List<IManagedItem> list = FindChildren(gv).ToList();
-                if (list.IndexOf(target) > list.Count - 2)
-                    return false;
-            }
-            else
-            {
-                if (ManagedItems.IndexOf(target) > ManagedItems.Count - 2)
-                    return false;
-            }
-
-            return true;
+            List<IManagedItem> list1 = [.. ManagedItems.Where(mi => mi.ParentIndex == target.ParentIndex)];
+            return list1.IndexOf(target) < list1.Count - 1;
         }
 
         public void MoveDownItem()
         {
-            int index = SelectedIndex;
-            IManagedItem target = Source[index];
+            int index1 = SelectedIndex;
+            IManagedItem target = Source[index1];
 
-            if (target.Parent is CloneGroupValue gv)
+            if (target.ParentIndex > -1 && target.ParentIndex < ManagedItems.Count)
             {
-                List<IManagedItem> list = FindChildren(gv).ToList();
-                if (list.IndexOf(target) > list.Count - 2)
-                    return;
+                if (ManagedItems[target.ParentIndex] is CloneGroupValue gv)
+                {
+                    List<IManagedItem> list = [.. FindChildren(gv)];
+                    if (list.IndexOf(target) > list.Count - 2)
+                        return;
+                }
             }
             else
             {
@@ -301,28 +393,38 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             }
 
             int index2 = ManagedItems.IndexOf(target);
+            List<IManagedItem> list1 = [target, .. GetDescendants(target)];
+            List<IManagedItem> list2 = [.. ManagedItems.Where(mi => mi.ParentIndex == target.ParentIndex)];
+            IManagedItem mi1 = list2[list2.IndexOf(target) + 1];
+            List<IManagedItem> list3 = [mi1, .. GetDescendants(mi1)];
+            int index3 = ManagedItems.IndexOf(mi1);
+
+            for (int i = 1; i < list1.Count; i++)
+                list1[i].ParentIndex += list3.Count;
+
+            for (int i = 1; i < list3.Count; i++)
+                list3[i].ParentIndex -= list1.Count;
+
             BeginEdit?.Invoke(this, EventArgs.Empty);
 
-            if (index < ManagedItems.Count - 2)
-            {
-                ManagedItems = ManagedItems
-                    .Remove(target)
-                    .Insert(index2 + 1, target);
-            }
+
+            foreach (IManagedItem mi2 in list1)
+                ManagedItems.Remove(mi2);
+
+            foreach (IManagedItem mi2 in list3)
+                ManagedItems.Remove(mi2);
+
+            if (ManagedItems.Count > index2)
+                ManagedItems.InsertRange(index2, [.. list3, .. list1]);
             else
-            {
-                ManagedItems = ManagedItems
-                    .Remove(target)
-                    .Add(target);
-            }
+                ManagedItems.AddRange([.. list3, .. list1]);
 
             UpdateSource();
-            int index3 = Source.IndexOf(target);
+            int index4 = Source.IndexOf(target);
             SetProperties();
             UpdateSource();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index3;
-            _view.UpdateButtons();
+            SelectedIndex = index4;
         }
 
         public void Dispose()

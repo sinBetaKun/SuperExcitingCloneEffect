@@ -9,7 +9,8 @@
              xmlns:resx="clr-namespace:SuperExcitingCloneEffect.Properties"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=local2:IManagedItem}"
-             DataContextChanged="UserControl_DataContextChanged">
+             DataContextChanged="UserControl_DataContextChanged"
+             x:Name="Root">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -24,6 +25,7 @@
                 </Style.Triggers>
             </Style>
             <local:LeftMarginConverter x:Key="LeftMarginConverter" />
+            <local:FolderIconVisiblityConverter x:Key="FolderIconVisiblityConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Margin="{Binding Depth, Converter={StaticResource LeftMarginConverter}}">
@@ -54,7 +56,7 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
                 <ContentControl x:Name="FolderIcon"
-                                Visibility="Collapsed"
+                                Visibility="{Binding DataContext, ElementName=Root, Converter={StaticResource FolderIconVisiblityConverter}}"
                                 Content="{StaticResource Folder}"/>
                 <Grid Grid.Column="1"
                       Margin="2">
@@ -140,7 +142,7 @@
                 Grid.Row="1"
                 Grid.Column="1"
                 Click="GroupViewChanged"
-                Visibility="Collapsed">
+                Visibility="{Binding DataContext, ElementName=Root, Converter={StaticResource FolderIconVisiblityConverter}}">
             <Button.Content>
                 <Viewbox>
                     <Canvas Width="16" Height="8">
