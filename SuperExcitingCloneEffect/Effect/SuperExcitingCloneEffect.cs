@@ -20,11 +20,7 @@ namespace SuperExcitingCloneEffect.Effect
 
         [Display]
         [CloneValueList(PropertyEditorSize = PropertyEditorSize.FullWidth)]
-        public ImmutableList<IManagedItem> ManagedItems
-        {
-            get => _managedItems;
-            set => Set(ref _managedItems, value);
-        }
+        public ImmutableList<IManagedItem> ManagedItems { get => _managedItems; set => Set(ref _managedItems, value); }
         private ImmutableList<IManagedItem> _managedItems = [new CloneValue()];
 
         public override IEnumerable<string> CreateExoVideoFilters(int keyFrameIndex, ExoOutputDescription exoOutputDescription)

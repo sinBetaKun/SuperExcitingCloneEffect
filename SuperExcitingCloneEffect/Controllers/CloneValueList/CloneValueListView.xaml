@@ -106,12 +106,17 @@
         </Grid>
         <GridSplitter Grid.Row="1"
                       HorizontalAlignment="Stretch"/>
-        <c:PropertiesEditor 
-            Name="propertiesEditor"
-            Grid.Row="2"
-            Target="{Binding ElementName=ItemList,Path=SelectedValue}"
-            BeginEdit="PropertiesEditor_BeginEdit" 
-            EndEdit="PropertiesEditor_EndEdit">
-        </c:PropertiesEditor>
+        <Border 
+            BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+            BorderThickness="2"
+            Margin="4,4,0,12"
+            Grid.Row="2">
+            <c:PropertiesEditor
+                Name="propertiesEditor"
+                Target="{Binding ElementName=ItemList,Path=SelectedValue}"
+                BeginEdit="PropertiesEditor_BeginEdit" 
+                EndEdit="PropertiesEditor_EndEdit">
+            </c:PropertiesEditor>
+        </Border>
     </Grid>
 </UserControl>

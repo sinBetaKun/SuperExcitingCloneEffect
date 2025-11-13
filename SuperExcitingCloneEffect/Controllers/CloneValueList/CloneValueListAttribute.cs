@@ -15,7 +15,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             if (control is not CloneValueListView editor)
                 return;
 
-            editor.DataContext = new CloneValueListViewModel(itemProperties, editor);
+            editor.DataContext = new CloneValueListViewModel(itemProperties);
         }
 
         public override void ClearBindings(FrameworkElement control)

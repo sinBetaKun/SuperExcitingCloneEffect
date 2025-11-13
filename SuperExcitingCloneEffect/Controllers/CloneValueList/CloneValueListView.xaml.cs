@@ -250,6 +250,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             vm.MoveUpItem();
+            UpdateButtons();
         }
 
         private void DownButton_Click(object sender, RoutedEventArgs e)
@@ -258,6 +259,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             vm.MoveDownItem();
+            UpdateButtons();
         }
 
         private void CutButton_Click(object sender, RoutedEventArgs e)
