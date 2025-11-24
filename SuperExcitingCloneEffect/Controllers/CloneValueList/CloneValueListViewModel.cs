@@ -121,7 +121,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             return ret;
         }
 
-        private List<IManagedItem> GetDescendants(IManagedItem mi1)
+        public List<IManagedItem> GetDescendants(IManagedItem mi1)
         {
             if (!ManagedItems.Contains(mi1))
                 return [];
@@ -196,6 +196,10 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 {
                     int index2 = ManagedItems.IndexOf(gv);
 
+                    foreach (IManagedItem mi in ManagedItems)
+                        if (mi.ParentIndex > index2)
+                            mi.ParentIndex += items.Count;
+
                     foreach (IManagedItem mi in items)
                     {
                         if (mi.ParentIndex < 0)
@@ -210,10 +214,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                     else
                         ManagedItems.AddRange(items);
 
-                    foreach (IManagedItem mi in ManagedItems)
-                        if (mi.ParentIndex > index2)
-                            mi.ParentIndex += items.Count;
-
                     flag = true;
                 }
             }
@@ -222,26 +222,25 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             {
                 IManagedItem target = Source[index];
                 int index2 = ManagedItems.IndexOf(target);
+                int index3 = index2 + GetDescendants(target).Count + 1;
 
-                if (target.ParentIndex > -1 && target.ParentIndex < ManagedItems.Count)
-                {
+                foreach (IManagedItem mi in items)
+                    if (mi.ParentIndex > -1)
+                        mi.ParentIndex += index3;
+
+                if (target.ParentIndex > -1)
                     foreach (IManagedItem mi in items)
-                    {
                         if (mi.ParentIndex < 0)
                             mi.ParentIndex = target.ParentIndex;
-                        else
-                            mi.ParentIndex += index2 + 1;
-                    }
-                }
 
-                for (int i = index2 + GetDescendants(target).Count + 1; i < ManagedItems.Count; i++)
+                for (int i = index3; i < ManagedItems.Count; i++)
                     if (ManagedItems[i].ParentIndex > -1)
                         ManagedItems[i].ParentIndex += items.Count;
 
                 if (index2 + 1 == ManagedItems.Count)
                     ManagedItems.AddRange(items);
                 else
-                    ManagedItems.InsertRange(index2 + GetDescendants(target).Count + 1, items);
+                    ManagedItems.InsertRange(index3, items);
             }
 
             UpdateSource();

@@ -309,7 +309,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                     foreach (IManagedItem mi2 in list1)
                     {
                         if (mi2 is CloneGroupValue gv)
-                            list2.AddRange(vm.FindChildren(gv));
+                            list2.AddRange(vm.GetDescendants(gv));
 
                         hash.Add(mi2);
                     }
