@@ -223,6 +223,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 IManagedItem target = Source[index];
                 int index2 = ManagedItems.IndexOf(target);
                 int index3 = index2 + GetDescendants(target).Count + 1;
+                int index4 = target.ParentIndex < 0 ? -1 : (target.ParentIndex + GetDescendants(ManagedItems[target.ParentIndex]).Count + 1);
 
                 foreach (IManagedItem mi in items)
                     if (mi.ParentIndex > -1)
@@ -233,9 +234,10 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                         if (mi.ParentIndex < 0)
                             mi.ParentIndex = target.ParentIndex;
 
-                for (int i = index3; i < ManagedItems.Count; i++)
-                    if (ManagedItems[i].ParentIndex > -1)
-                        ManagedItems[i].ParentIndex += items.Count;
+                if (index4 > -1)
+                    for (int i = index4; i < ManagedItems.Count; i++)
+                        if (ManagedItems[i].ParentIndex > -1)
+                            ManagedItems[i].ParentIndex += items.Count;
 
                 if (index2 + 1 == ManagedItems.Count)
                     ManagedItems.AddRange(items);
@@ -244,11 +246,11 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             }
 
             UpdateSource();
-            int index4 = Source.IndexOf(first);
+            int index5 = Source.IndexOf(first);
             SetProperties();
             UpdateSource();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index4;
+            SelectedIndex = index5;
         }
 
         public void RemoveItems(IEnumerable<IManagedItem> items)
