@@ -19,7 +19,7 @@ namespace SuperExcitingCloneEffect.Properties {
     // または Visual Studio のようなツールを使用して自動生成されました。
     // メンバーを追加または削除するには、.ResX ファイルを編集して、/str オプションと共に
     // ResGen を実行し直すか、または VS プロジェクトをビルドし直します。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class TextResource {
@@ -120,6 +120,15 @@ namespace SuperExcitingCloneEffect.Properties {
         public static string GroupName_CloneValue {
             get {
                 return ResourceManager.GetString("GroupName_CloneValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   合成モード に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string IManagedItem_Blend {
+            get {
+                return ResourceManager.GetString("IManagedItem_Blend", resourceCulture);
             }
         }
         

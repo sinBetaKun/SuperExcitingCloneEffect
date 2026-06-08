@@ -144,6 +144,9 @@
   <data name="IManagedItem_Hide" xml:space="preserve">
     <value>非表示</value>
   </data>
+  <data name="IManagedItem_Blend" xml:space="preserve">
+    <value>合成モード</value>
+  </data>
   <data name="GroupName_CloneValue" xml:space="preserve">
     <value>クローン</value>
   </data>
