@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Controls;
 using YukkuriMovieMaker.Plugin.Effects;
+using YukkuriMovieMaker.Project;
 
 namespace SuperExcitingCloneEffect.Classes
 {
@@ -28,6 +29,11 @@ namespace SuperExcitingCloneEffect.Classes
         public string NameTag { get => _nameTag; set => Set(ref _nameTag, value); }
         private string _nameTag = string.Empty;
 
+        [Display(GroupName = nameof(TextResource.GroupName_CloneValue), Name = nameof(TextResource.IManagedItem_Blend), ResourceType = typeof(TextResource))]
+        [EnumComboBox]
+        public Blend Blend { get => _blend; set => Set(ref _blend, value); }
+        private Blend _blend = Blend.Normal;
+
         [Display(GroupName = nameof(TextResource.GroupName_CloneValue), Name = nameof(TextResource.IManagedItem_Comment), ResourceType = typeof(TextResource))]
         [TextEditor]
         public string Comment { get => _comment; set => Set(ref _comment, value); }
@@ -48,6 +54,7 @@ namespace SuperExcitingCloneEffect.Classes
             ParentIndex = origin.ParentIndex;
             Hide = origin.Hide;
             NameTag = origin.NameTag;
+            Blend = origin.Blend;
             Comment = origin.Comment;
             Effects = YukkuriMovieMaker.Json.Json.GetClone(origin.Effects)!;
         }
