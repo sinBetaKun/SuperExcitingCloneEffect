@@ -16,7 +16,11 @@ namespace SuperExcitingCloneEffect.Classes
         public int Depth { get => _depth; set => Set(ref _depth, value); }
         private int _depth;
 
-        public int ParentIndex { get => _parentIndex; set => Set(ref _parentIndex, value); }
+        public int ParentIndex
+        {
+            get => _parentIndex;
+            set => Set(ref _parentIndex, value);
+        }
         private int _parentIndex = -1;
 
         [Display(GroupName = nameof(TextResource.GroupName_CloneValue), Name = nameof(TextResource.IManagedItem_Hide), ResourceType = typeof(TextResource))]
