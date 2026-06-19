@@ -1,8 +1,5 @@
 ﻿using SuperExcitingCloneEffect.Classes;
 using SuperExcitingCloneEffect.Interfaces;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;

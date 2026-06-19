@@ -229,14 +229,12 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                         mi.ParentIndex += index3;
 
                 if (target.ParentIndex > -1)
-                {
                     foreach (IManagedItem mi in items)
                         if (mi.ParentIndex < 0)
                             mi.ParentIndex = target.ParentIndex;
-                }
 
                 for (int i = index3; i < ManagedItems.Count; i++)
-                    if (ManagedItems[i].ParentIndex >= index3)
+                    if (ManagedItems[i].ParentIndex > -1)
                         ManagedItems[i].ParentIndex += items.Count;
 
                 if (index2 + 1 == ManagedItems.Count)
