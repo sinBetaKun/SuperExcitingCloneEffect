@@ -1,8 +1,5 @@
 ﻿using SuperExcitingCloneEffect.Classes;
 using SuperExcitingCloneEffect.Interfaces;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -104,6 +101,9 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         public void SetEditorInfo(IEditorInfo info)
         {
             propertiesEditor.SetEditorInfo(info);
+
+            if (DataContext is CloneValueListViewModel vm)
+                vm.UpdateSource();
         }
 
         private void PropertiesEditor_BeginEdit(object? sender, EventArgs e)
@@ -268,12 +268,14 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             _clipboad = GetCloneOfSelected();
+            UpdateButtons();
             vm.RemoveItems(GetSelecteds());
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
             _clipboad = GetCloneOfSelected();
+            UpdateButtons();
         }
 
         private void PasteButton_Click(object sender, RoutedEventArgs e)
