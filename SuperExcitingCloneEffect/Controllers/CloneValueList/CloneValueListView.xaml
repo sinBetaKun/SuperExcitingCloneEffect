@@ -8,8 +8,7 @@
              xmlns:resx="clr-namespace:SuperExcitingCloneEffect.Properties"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="400"
-             d:DataContext="{d:DesignInstance Type={x:Type local:CloneValueListViewModel}}"
-             Loaded="UserControl_Loaded">
+             d:DataContext="{d:DesignInstance Type={x:Type local:CloneValueListViewModel}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -17,106 +16,115 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="130" MinHeight="130"/>
-            <RowDefinition Height="8"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition Width="26"/>
-            </Grid.ColumnDefinitions>
+    <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+            BorderThickness="2">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="156" MinHeight="156"/>
+                <RowDefinition Height="4"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="26"/>
+                </Grid.ColumnDefinitions>
 
-            <ListBox x:Name="ItemList"
-                     Grid.Column="0"
-                     HorizontalContentAlignment="Stretch"
-                     ItemsSource="{Binding Path=Source}"
-                     ScrollViewer.CanContentScroll="False"
-                     SelectionChanged="ItemList_SelectionChanged"
-                     PreviewMouseWheel="List_PreviewMouseWheel"
-                     VirtualizingPanel.IsVirtualizing="True"
-                     SelectionMode="Extended"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     SelectedIndex="{Binding SelectedIndex}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <local:ManagedItemView
-                            IsSelected="{
-                            Binding RelativeSource={RelativeSource AncestorType=ListBoxItem},
-                            Path=IsSelected}"
-                            GroupOpened="ManagedItemView_GroupOpened"
-                            GroupClosed="ManagedItemView_GroupClosed"
-                            BeginEdit="PropertiesEditor_BeginEdit" 
-                            EndEdit="PropertiesEditor_EndEdit"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-                <ListBox.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem x:Name="CutButton"
-                                  Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Cut}"
-                                  Click="CutButton_Click"
-                                  Icon="{StaticResource Cut}"/>
-                        <MenuItem x:Name="CopyButton"
-                                  Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Copy}"
-                                  Click="CopyButton_Click"
-                                  Icon="{StaticResource Copy}"/>
-                        <MenuItem x:Name="PasteButton"
-                                  Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Paste}"
-                                  Click="PasteButton_Click"
-                                  Icon="{StaticResource Paste}"/>
-                        <MenuItem x:Name="DuplicateButton"
-                                  Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Duplicate}"
-                                  Click="DuplicateButton_Click"
-                                  Icon="{StaticResource Duplicate}"/>
-                    </ContextMenu>
-                </ListBox.ContextMenu>
-            </ListBox>
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="26"/>
-                    <RowDefinition Height="26"/>
-                    <RowDefinition Height="26"/>
-                    <RowDefinition Height="26"/>
-                    <RowDefinition Height="26"/>
-                </Grid.RowDefinitions>
+                <ListBox x:Name="ItemList"
+                         Grid.Column="0"
+                         HorizontalContentAlignment="Stretch"
+                         ItemsSource="{Binding Path=Source}"
+                         ScrollViewer.CanContentScroll="False"
+                         SelectionChanged="ItemList_SelectionChanged"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         SelectionMode="Extended"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         SelectedIndex="{Binding SelectedIndex}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <local:ManagedItemView IsSelected="{
+                                                    Binding RelativeSource={RelativeSource AncestorType=ListBoxItem},
+                                                    Path=IsSelected}"
+                                                   BeginEdit="PropertiesEditor_BeginEdit" 
+                                                   EndEdit="PropertiesEditor_EndEdit"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem x:Name="CutButton"
+                                      Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Cut}"
+                                      Click="CutButton_Click"
+                                      Icon="{StaticResource Cut}"/>
+                            <MenuItem x:Name="CopyButton"
+                                      Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Copy}"
+                                      Click="CopyButton_Click"
+                                      Icon="{StaticResource Copy}"/>
+                            <MenuItem x:Name="PasteButton"
+                                      Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Paste}"
+                                      Click="PasteButton_Click"
+                                      Icon="{StaticResource Paste}"/>
+                            <MenuItem x:Name="DuplicateButton"
+                                      Header="{x:Static resx:TextResource.CloneValueListView_ContextMenu_Duplicate}"
+                                      Click="DuplicateButton_Click"
+                                      Icon="{StaticResource Duplicate}"/>
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                </ListBox>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="26"/>
+                    </Grid.RowDefinitions>
 
-                <Button x:Name="AddButton"
-                        Grid.Row="0"
-                        Content="{StaticResource Plus}"
-                        Click="AddButton_Click"/>
-                <Button x:Name="GroupAddButton"
-                        Grid.Row="1"
-                        Content="{StaticResource AddFolder}"
-                        Click="GroupAddButton_Click"/>
-                <Button x:Name="RemoveButton"
-                        Grid.Row="2"
-                        Content="{StaticResource Minus}"
-                        Click="RemoveButton_Click"/>
-                <Button x:Name="UpButton"
-                        Grid.Row="3"
-                        Content="{StaticResource Up}"
-                        Click="UpButton_Click"/>
-                <Button x:Name="DownButton"
-                        Grid.Row="4"
-                        Content="{StaticResource Down}"
-                        Click="DownButton_Click"/>
+                    <Button x:Name="AddButton"
+                            Grid.Row="0"
+                            Content="{StaticResource Plus}"
+                            Click="AddButton_Click"/>
+                    <Button x:Name="GroupAddButton"
+                            Grid.Row="1"
+                            Content="{StaticResource AddFolder}"
+                            Click="GroupAddButton_Click"/>
+                    <Button x:Name="RemoveButton"
+                            Grid.Row="2"
+                            Content="{StaticResource Minus}"
+                            Click="RemoveButton_Click"/>
+                    <Button x:Name="UpButton"
+                            Grid.Row="3"
+                            Content="{StaticResource Up}"
+                            Click="UpButton_Click"/>
+                    <Button x:Name="DownButton"
+                            Grid.Row="4"
+                            Content="{StaticResource Down}"
+                            Click="DownButton_Click"/>
+                    <ContentControl x:Name="HazardIcon"
+                                    Grid.Row="5"
+                                    Content="{StaticResource Warning}"/>
+                </Grid>
+            </Grid>
+            <GridSplitter Grid.Row="1"
+                          HorizontalAlignment="Stretch"
+                          Background="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
+            <Grid Margin="4" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Rectangle Grid.Column="0"
+                           Margin="0,0,4,0"
+                           Width="4"
+                           VerticalAlignment="Stretch"
+                           Fill="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
+                <c:PropertiesEditor Name="propertiesEditor"
+                                    Target="{Binding ElementName=ItemList,Path=SelectedValue}"
+                                    BeginEdit="PropertiesEditor_BeginEdit" 
+                                    EndEdit="PropertiesEditor_EndEdit">
+                </c:PropertiesEditor>
             </Grid>
         </Grid>
-        <GridSplitter Grid.Row="1"
-                      HorizontalAlignment="Stretch"/>
-        <Border 
-            BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
-            BorderThickness="2"
-            Margin="4,4,0,12"
-            Grid.Row="2">
-            <c:PropertiesEditor
-                Name="propertiesEditor"
-                Target="{Binding ElementName=ItemList,Path=SelectedValue}"
-                BeginEdit="PropertiesEditor_BeginEdit" 
-                EndEdit="PropertiesEditor_EndEdit">
-            </c:PropertiesEditor>
-        </Border>
-    </Grid>
+    </Border>
+    
 </UserControl>

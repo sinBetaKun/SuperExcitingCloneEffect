@@ -16,12 +16,15 @@ namespace SuperExcitingCloneEffect.Effect
         isAviUtlSupported: false, ResourceType = typeof(TextResource))]
     public class SuperExcitingCloneEffect : VideoEffectBase
     {
-        public override string Label => TextResource.Plugin_Name;
+        public override string Label => TextResource.Plugin_Name + $"[{ManagedItems.OfType<CloneValue>().Count()}]";
 
         [Display]
         [CloneValueList(PropertyEditorSize = PropertyEditorSize.FullWidth)]
-        public ImmutableList<IManagedItem> ManagedItems { get => _managedItems; set => Set(ref _managedItems, value); }
-        private ImmutableList<IManagedItem> _managedItems = [new CloneValue()];
+        public ImmutableList<IManagedItem> ManagedItems
+        {
+            get;
+            set => Set(ref field, value, nameof(ManagedItems), nameof(Label));
+        } = [new CloneValue()];
 
         public override IEnumerable<string> CreateExoVideoFilters(int keyFrameIndex, ExoOutputDescription exoOutputDescription)
         {

@@ -97,6 +97,33 @@ namespace SuperExcitingCloneEffect.Properties {
         }
         
         /// <summary>
+        ///   木構造の処理に失敗しました（#0） に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string CloneValueListViewModel_Error_FailToGenerateValueTree_0 {
+            get {
+                return ResourceManager.GetString("CloneValueListViewModel_Error_FailToGenerateValueTree_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   木構造の処理に失敗しました（#1） に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string CloneValueListViewModel_Error_FailToGenerateValueTree_1 {
+            get {
+                return ResourceManager.GetString("CloneValueListViewModel_Error_FailToGenerateValueTree_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   コピーされたパーツの情報を復元できませんでした。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string ErrorMessage_FailToGetClippedFromJson {
+            get {
+                return ResourceManager.GetString("ErrorMessage_FailToGetClippedFromJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   [E01]CommandListが見つかりません。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string Exception_CommandListIsNull {
@@ -174,6 +201,15 @@ namespace SuperExcitingCloneEffect.Properties {
         public static string IManagedItem_NameTag {
             get {
                 return ResourceManager.GetString("IManagedItem_NameTag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   階層の異なる複数のパーツの描画順序をを同時に入れ替えることはできません。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string PartValueListView_WarningA {
+            get {
+                return ResourceManager.GetString("PartValueListView_WarningA", resourceCulture);
             }
         }
         

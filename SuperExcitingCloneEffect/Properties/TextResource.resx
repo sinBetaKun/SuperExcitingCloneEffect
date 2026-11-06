@@ -165,4 +165,16 @@
   <data name="CloneValueListView_ContextMenu_Paste" xml:space="preserve">
     <value>貼り付け</value>
   </data>
+  <data name="ErrorMessage_FailToGetClippedFromJson" xml:space="preserve">
+    <value>コピーされたパーツの情報を復元できませんでした。</value>
+  </data>
+  <data name="CloneValueListViewModel_Error_FailToGenerateValueTree_0" xml:space="preserve">
+    <value>木構造の処理に失敗しました（#0）</value>
+  </data>
+  <data name="CloneValueListViewModel_Error_FailToGenerateValueTree_1" xml:space="preserve">
+    <value>木構造の処理に失敗しました（#1）</value>
+  </data>
+  <data name="PartValueListView_WarningA" xml:space="preserve">
+    <value>階層の異なる複数のパーツの描画順序をを同時に入れ替えることはできません。</value>
+  </data>
 </root>

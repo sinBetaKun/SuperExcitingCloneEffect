@@ -12,35 +12,28 @@ namespace SuperExcitingCloneEffect.Classes
     public class CloneGroupValue : Animatable, IManagedItem
     {
         [JsonIgnore]
-        public bool IsOpened { get => _isOpned; set => Set(ref _isOpned, value); }
-        private bool _isOpned = true;
+        public bool IsOpened { get; set => Set(ref field, value); } = true;
 
-        public int ParentIndex { get => _parentIndex; set => Set(ref _parentIndex, value); }
-        private int _parentIndex = -1;
+        public int ParentIndex { get; set => Set(ref field, value); } = -1;
 
         [JsonIgnore]
-        public int Depth { get => _depth; set => Set(ref _depth, value); }
-        private int _depth;
+        public int Depth { get; set => Set(ref field, value); }
 
         [Display(GroupName = nameof(TextResource.GroupName_CloneGroupValue), Name = nameof(TextResource.IManagedItem_Hide), ResourceType = typeof(TextResource))]
         [ToggleSlider]
-        public bool Hide { get => _hide; set => Set(ref _hide, value); }
-        private bool _hide = false;
+        public bool Hide { get; set => Set(ref field, value); } = false;
 
         [Display(GroupName = nameof(TextResource.GroupName_CloneGroupValue), Name = nameof(TextResource.IManagedItem_NameTag), ResourceType = typeof(TextResource))]
         [TextEditor]
-        public string NameTag { get => _nameTag; set => Set(ref _nameTag, value); }
-        private string _nameTag = string.Empty;
+        public string NameTag { get; set => Set(ref field, value); } = string.Empty;
 
         [Display(GroupName = nameof(TextResource.GroupName_CloneGroupValue), Name = nameof(TextResource.IManagedItem_Comment), ResourceType = typeof(TextResource))]
         [TextEditor]
-        public string Comment { get => _comment; set => Set(ref _comment, value); }
-        private string _comment = string.Empty;
+        public string Comment { get; set => Set(ref field, value); } = string.Empty;
 
         [Display(GroupName = nameof(TextResource.IManagedItem_GroupEffects), ResourceType = typeof(TextResource))]
         [VideoEffectSelector(PropertyEditorSize = PropertyEditorSize.FullWidth)]
-        public ImmutableList<IVideoEffect> Effects { get => effects; set => Set(ref effects, value); }
-        ImmutableList<IVideoEffect> effects = [];
+        public ImmutableList<IVideoEffect> Effects { get; set => Set(ref field, value); } = [];
 
         public CloneGroupValue()
         {

@@ -1,5 +1,4 @@
-﻿using SuperExcitingCloneEffect.Classes;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Plugin.Effects;
 
