@@ -15,21 +15,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         public event EventHandler? BeginEdit;
         public event EventHandler? EndEdit;
 
-        public List<IManagedItem> ManagedItems
-        {
-            get;
-            set
-            {
-                bool flag = false;
-                if (field.Count == 0 && value.Count > 0)
-                    flag = true;
-
-                Set(ref field, value);
-
-                if (flag)
-                    SelectedIndex = 0;
-            }
-        } = [];
+        public List<IManagedItem> ManagedItems { get; set => Set(ref field, value); } = [];
 
         public List<IManagedItem> Source { get;  set => Set(ref field, value); } = [];
 
