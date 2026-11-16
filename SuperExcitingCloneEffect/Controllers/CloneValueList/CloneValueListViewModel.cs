@@ -1,8 +1,8 @@
 ﻿using SuperExcitingCloneEffect.Classes;
 using SuperExcitingCloneEffect.Interfaces;
+using SuperExcitingCloneEffect.Properties;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Runtime.Intrinsics.X86;
 using YukkuriMovieMaker.Commons;
 
 namespace SuperExcitingCloneEffect.Controllers.CloneValueList
@@ -15,16 +15,9 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         public event EventHandler? BeginEdit;
         public event EventHandler? EndEdit;
 
-        public List<IManagedItem> ManagedItems { get => _managedItems; set => Set(ref _managedItems, value); }
-        private List<IManagedItem> _managedItems = [];
+        public List<IManagedItem> ManagedItems { get; set => Set(ref field, value); } = [];
 
-        public List<IManagedItem> Source { get => _source; set => Set(ref _source, value); }
-        private List<IManagedItem> _source = [];
-
-        public int SelectedIndex { get => selectedIndex; set => Set(ref selectedIndex, value); }
-        int selectedIndex = -1;
-
-        private readonly List<CloneGroupValue> _openeds = [];
+        public List<IManagedItem> Source { get;  set => Set(ref field, value); } = [];
 
         public CloneValueListViewModel(ItemProperty[] properties)
         {
@@ -36,12 +29,26 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             UpdateClones();
         }
 
-
         public void CopyToOtherItems()
         {
             var otherProperties = _properties.Skip(1);
             foreach (var property in otherProperties)
                 property.SetValue(DeepCloneManagedItems(ManagedItems).ToImmutableList());
+        }
+
+        private static List<IManagedItem> DeepCloneManagedItems(IEnumerable<IManagedItem> origin)
+        {
+            List<IManagedItem> mi_l0 = [];
+
+            foreach (IManagedItem mi in origin)
+            {
+                if (mi is CloneGroupValue gv)
+                    mi_l0.Add(new CloneGroupValue(gv));
+                else
+                    mi_l0.Add(new CloneValue((CloneValue)mi));
+            }
+
+            return mi_l0;
         }
 
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -59,45 +66,18 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 ManagedItems = [.. list];
             }
 
-            int index = SelectedIndex;
-            FindOpendGroup();
             UpdateSource();
-            SelectedIndex = index;
         }
 
         public void SetProperties()
         {
             foreach (var property in _properties)
-                property.SetValue(DeepCloneManagedItems(ManagedItems).ToImmutableList());
-        }
-
-        private static List<IManagedItem> DeepCloneManagedItems(IEnumerable<IManagedItem> origin)
-        {
-            List<IManagedItem> mis = [];
-
-            foreach (IManagedItem mi in origin)
-            {
-                if (mi is CloneGroupValue gv)
-                    mis.Add(new CloneGroupValue(gv));
-                else
-                    mis.Add(new CloneValue((CloneValue)mi));
-            }
-
-            return mis;
-        }
-
-        private void FindOpendGroup()
-        {
-            _openeds.Clear();
-
-            foreach (IManagedItem mi in ManagedItems)
-                if (mi is CloneGroupValue gv && gv.IsOpened)
-                    _openeds.Add(gv);
+                property.SetValue(ManagedItems.ToImmutableList());
         }
 
         public void UpdateSource()
         {
-            Source = [.. GetVisibleItem()];
+            Source = [.. ItemTreeNode.GetVisibleList(ItemTreeNode.GetTree(ManagedItems))];
         }
 
         public List<IManagedItem> GetVisibleItem(int parentIndex = -1, int depth = 0)
@@ -149,281 +129,193 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             return list1;
         }
 
-        public void AddOpenedGroup(CloneGroupValue gv)
+        private (List<ItemTreeNode>, List<ItemTreeNode>) FindSelectedNodes(List<IManagedItem> items)
         {
-            gv.IsOpened = true;
-            _openeds.Add(gv);
-            UpdateSource();
+            List<ItemTreeNode> n_l0 = ItemTreeNode.GetTree(ManagedItems);
+            List<ItemTreeNode> n_l1 = [];
+
+            foreach (IManagedItem mi_0 in items)
+            {
+                if (n_l0.FirstOrDefault(x => x.Item == mi_0) is ItemTreeNode n_0)
+                    n_l1.Add(n_0);
+                else
+                    foreach (ItemTreeNode n_1 in n_l0)
+                        if (n_1.Find(mi_0) is ItemTreeNode n_2)
+                            n_l1.Add(n_2);
+            }
+
+            return (n_l0, [.. n_l1.OrderBy(x => ManagedItems.IndexOf(x.Item))]);
         }
 
-        public void RemoveOpenedGroup(CloneGroupValue gv)
+        public void InsertItems(List<IManagedItem> items, int selectedIndex)
         {
-            gv.IsOpened = false;
-            _openeds.Remove(gv);
-            UpdateSource();
-        }
-
-        public IEnumerable<IManagedItem> FindChildren(CloneGroupValue gv)
-        {
-            return ManagedItems.Where(mi => mi.ParentIndex == ManagedItems.IndexOf(gv));
-        }
-
-        public void InsertItems(List<IManagedItem> items)
-        {
-            if (SelectedIndex < -1 || SelectedIndex >= Source.Count)
+            if (selectedIndex < -1 || selectedIndex >= Source.Count)
                 return;
 
-            IManagedItem first = items.First();
-            int index = SelectedIndex;
-            bool flag = false;
+            List<ItemTreeNode> n_l0 = ItemTreeNode.GetTree(ManagedItems);
+            List<ItemTreeNode> n_l1 = ItemTreeNode.GetTree(items);
 
-            BeginEdit?.Invoke(this, EventArgs.Empty);
-
-            if (index < 0)
+            if (selectedIndex < 0)
             {
-                foreach (IManagedItem mi in items)
-                    if (mi.ParentIndex > -1)
-                        mi.ParentIndex += ManagedItems.Count;
-
-                ManagedItems.AddRange(items);
-                flag = true;
+                n_l0.AddRange(n_l1);
             }
-            else if (Source[index] is CloneGroupValue gv)
+            else
             {
-                IManagedItem[] children = [.. FindChildren(gv)];
+                IManagedItem mi_0 = Source[selectedIndex];
 
-                if (children.Length == 0)
+                if (n_l0.FirstOrDefault(x => x.Item == mi_0) is ItemTreeNode n_0)
                 {
-                    int index2 = ManagedItems.IndexOf(gv);
-
-                    foreach (IManagedItem mi in ManagedItems)
-                        if (mi.ParentIndex > index2)
-                            mi.ParentIndex += items.Count;
-
-                    foreach (IManagedItem mi in items)
+                    if (n_0.InsertToHere(n_l1))
                     {
-                        if (mi.ParentIndex < 0)
-                            mi.ParentIndex = index2;
+                        if (n_l0.Last() == n_0)
+                        {
+                            n_l0.AddRange(n_l1);
+                        }
                         else
-                            mi.ParentIndex += index2 + 1;
+                        {
+                            int i_0 = n_l0.IndexOf(n_0);
+                            n_l0.InsertRange(i_0 + 1, n_l1);
+                        }
+                    }
+                }
+                else
+                {
+                    ItemTreeNode? n_1 = null;
+
+                    foreach (ItemTreeNode n_2 in n_l0)
+                    {
+                        if (n_2.Find(mi_0) is ItemTreeNode n_3)
+                        {
+                            n_1 = n_3;
+                            break;
+                        }
                     }
 
-                    int index3 = ManagedItems.IndexOf(gv) + 1;
-                    if (index3 < ManagedItems.Count)
-                        ManagedItems.InsertRange(index3, items);
-                    else
-                        ManagedItems.AddRange(items);
+                    if (n_1 is null)
+                    {
+                        SuperExcitingCloneDialog.ShowError(new(TextResource.CloneValueListViewModel_Error_FailToGenerateValueTree_0));
+                        throw new Exception(TextResource.CloneValueListViewModel_Error_FailToGenerateValueTree_0);
+                    }
 
-                    flag = true;
+                    if (n_1.InsertToHere(n_l1))
+                    {
+                        SuperExcitingCloneDialog.ShowError(new(TextResource.CloneValueListViewModel_Error_FailToGenerateValueTree_1));
+                        throw new Exception(TextResource.CloneValueListViewModel_Error_FailToGenerateValueTree_1);
+                    }
                 }
             }
-            
-            if (!flag)
-            {
-                IManagedItem target = Source[index];
-                int index2 = ManagedItems.IndexOf(target);
-                int index3 = index2 + GetDescendants(target).Count + 1;
 
-                foreach (IManagedItem mi in items)
-                    if (mi.ParentIndex > -1)
-                        mi.ParentIndex += index3;
-
-                if (target.ParentIndex > -1)
-                    foreach (IManagedItem mi in items)
-                        if (mi.ParentIndex < 0)
-                            mi.ParentIndex = target.ParentIndex;
-
-                for (int i = index3; i < ManagedItems.Count; i++)
-                    if (ManagedItems[i].ParentIndex > -1)
-                        ManagedItems[i].ParentIndex += items.Count;
-
-                if (index2 + 1 == ManagedItems.Count)
-                    ManagedItems.AddRange(items);
-                else
-                    ManagedItems.InsertRange(index3, items);
-            }
-
+            BeginEdit?.Invoke(this, EventArgs.Empty);
+            List<IManagedItem> mi_l0 = ItemTreeNode.GetList(n_l0);
+            ManagedItems = mi_l0;
             UpdateSource();
-            int index4 = Source.IndexOf(first);
             SetProperties();
-            UpdateSource();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index4;
+            return;
         }
 
         public void RemoveItems(IEnumerable<IManagedItem> items)
         {
-            int index = SelectedIndex;
+            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items]);
 
-            BeginEdit?.Invoke(this, EventArgs.Empty);
-
-            HashSet<IManagedItem> hash = [];
-
-            foreach (IManagedItem mi1 in items)
+            foreach (ItemTreeNode n_0 in n_l1)
             {
-                List<IManagedItem> list1 = [mi1];
-                List<IManagedItem> list2 = [];
-
-                while (list1.Count > 0)
+                if (n_0.Parent is ItemTreeNode n_1)
                 {
-                    foreach (IManagedItem mi2 in list1)
-                    {
-                        if (mi2 is CloneGroupValue gv)
-                            list2.AddRange(FindChildren(gv));
-
-                        hash.Add(mi2);
-                    }
-
-                    list1 = list2;
-                    list2 = [];
+                    n_1.Children.Remove(n_0);
+                }
+                else
+                {
+                    n_l0.Remove(n_0);
                 }
             }
 
-            foreach (IManagedItem mi1 in hash)
-            {
-                int index2 = ManagedItems.IndexOf(mi1);
-
-                for (int i = index2; i < ManagedItems.Count; i++)
-                {
-                    IManagedItem mi2 = ManagedItems[i];
-
-                    if (mi2.ParentIndex > index2)
-                        mi2.ParentIndex--;
-                }
-
-                ManagedItems.Remove(mi1);
-            }
-
-            UpdateSource();
-            int index3 = (index < Source.Count - 1) ? index : -1;
-            SetProperties();
-            UpdateSource();
-            EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index3;
-        }
-
-
-
-        public bool CanMoveUpItem()
-        {
-            int index = SelectedIndex;
-            IManagedItem target = Source[index];
-            List<IManagedItem> list1 = [.. ManagedItems.Where(mi => mi.ParentIndex == target.ParentIndex)];
-            return list1.IndexOf(target) > 0;
-        }
-
-        public void MoveUpItem()
-        {
-            int index1 = SelectedIndex;
-            IManagedItem target = Source[index1];
-
-            if (target.ParentIndex > -1 && target.ParentIndex < ManagedItems.Count)
-            {
-                if (ManagedItems[target.ParentIndex] is CloneGroupValue gv)
-                    if (FindChildren(gv).ToList().IndexOf(target) < 1)
-                        return;
-            }
-            else
-            {
-                if (ManagedItems.IndexOf(target) < 1)
-                    return;
-            }
-
-            int index2 = ManagedItems.IndexOf(target);
-            List<IManagedItem> list1 = [target, .. GetDescendants(target)];
-            List<IManagedItem> list2 = [.. ManagedItems.Where(mi => mi.ParentIndex == target.ParentIndex)];
-            IManagedItem mi1 = list2[list2.IndexOf(target) - 1];
-            List<IManagedItem> list3 = [mi1, .. GetDescendants(mi1)];
-            int index3 = ManagedItems.IndexOf(mi1);
-
-            for (int i = 1; i < list1.Count; i++)
-                list1[i].ParentIndex -= list3.Count;
-
-            for (int i = 1; i < list3.Count; i++)
-                list3[i].ParentIndex += list1.Count;
-
             BeginEdit?.Invoke(this, EventArgs.Empty);
-
-            foreach (IManagedItem mi2 in list3)
-                ManagedItems.Remove(mi2);
-
-            foreach (IManagedItem mi2 in list1)
-                ManagedItems.Remove(mi2);
-
-            if (ManagedItems.Count > index3)
-                ManagedItems.InsertRange(index3, [.. list1, .. list3]);
-            else
-                ManagedItems.AddRange([.. list1, .. list3]);
-
+            ManagedItems = ItemTreeNode.GetList(n_l0);
             UpdateSource();
-            int index4 = Source.IndexOf(target);
             SetProperties();
-            UpdateSource();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index4;
         }
 
-        public bool CanMoveDownItem()
-        {
-            int index = SelectedIndex;
-            IManagedItem target = Source[index];
-            List<IManagedItem> list1 = [.. ManagedItems.Where(mi => mi.ParentIndex == target.ParentIndex)];
-            return list1.IndexOf(target) < list1.Count - 1;
-        }
 
-        public void MoveDownItem()
+        public ItemMovable CanMoveItem(IEnumerable<IManagedItem> items)
         {
-            int index1 = SelectedIndex;
-            IManagedItem target = Source[index1];
+            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items]);
 
-            if (target.ParentIndex > -1 && target.ParentIndex < ManagedItems.Count)
+            if (n_l1.Count == 0)
+                return ItemMovable.Neither;
+
+            if (n_l1.Select(x => x.Parent).Distinct().Count() > 1)
+                return ItemMovable.Hazard;
+
+            List<ItemTreeNode> n_l2 = n_l1.First().Parent?.Children ?? n_l0;
+
+            if (n_l1.Contains(n_l2.First()))
             {
-                if (ManagedItems[target.ParentIndex] is CloneGroupValue gv)
+                if (n_l1.Contains(n_l2.Last()))
                 {
-                    List<IManagedItem> list = [.. FindChildren(gv)];
-                    if (list.IndexOf(target) > list.Count - 2)
-                        return;
+                    return ItemMovable.Neither;
+                }
+                else
+                {
+                    return ItemMovable.OnlyDown;
                 }
             }
             else
             {
-                if (ManagedItems.IndexOf(target) > ManagedItems.Count - 2)
-                    return;
+                if (n_l1.Contains(n_l2.Last()))
+                {
+                    return ItemMovable.OnlyUp;
+                }
+                else
+                {
+                    return ItemMovable.Both;
+                }
+            }
+        }
+
+        public void MoveUpItems(List<IManagedItem> items)
+        {
+            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items]);
+            List<ItemTreeNode> n_l2 = n_l1.First().Parent?.Children ?? n_l0;
+
+            for (int i = 1; i < n_l2.Count && 0 < n_l1.Count; i++)
+            {
+                if (n_l2[i] == n_l1.First())
+                {
+                    (n_l2[i - 1], n_l2[i]) = (n_l2[i], n_l2[i - 1]);
+                    n_l1.RemoveAt(0);
+                }
             }
 
-            int index2 = ManagedItems.IndexOf(target);
-            List<IManagedItem> list1 = [target, .. GetDescendants(target)];
-            List<IManagedItem> list2 = [.. ManagedItems.Where(mi => mi.ParentIndex == target.ParentIndex)];
-            IManagedItem mi1 = list2[list2.IndexOf(target) + 1];
-            List<IManagedItem> list3 = [mi1, .. GetDescendants(mi1)];
-            int index3 = ManagedItems.IndexOf(mi1);
+            BeginEdit?.Invoke(this, EventArgs.Empty);
+            List<IManagedItem> mi_l0 = ItemTreeNode.GetList(n_l0);
+            ManagedItems = mi_l0;
+            UpdateSource();
+            SetProperties();
+            EndEdit?.Invoke(this, EventArgs.Empty);
+        }
 
-            for (int i = 1; i < list1.Count; i++)
-                list1[i].ParentIndex += list3.Count;
+        public void MoveDownItems(List<IManagedItem> items)
+        {
+            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items]);
+            List<ItemTreeNode> n_l2 = n_l1.First().Parent?.Children ?? n_l0;
 
-            for (int i = 1; i < list3.Count; i++)
-                list3[i].ParentIndex -= list1.Count;
+            for (int i = n_l2.Count - 2; i >= 0 && 0 < n_l1.Count; i--)
+            {
+                if (n_l2[i] == n_l1.Last())
+                {
+                    (n_l2[i + 1], n_l2[i]) = (n_l2[i], n_l2[i + 1]);
+                    n_l1.RemoveAt(n_l1.Count - 1);
+                }
+            }
 
             BeginEdit?.Invoke(this, EventArgs.Empty);
-
-
-            foreach (IManagedItem mi2 in list1)
-                ManagedItems.Remove(mi2);
-
-            foreach (IManagedItem mi2 in list3)
-                ManagedItems.Remove(mi2);
-
-            if (ManagedItems.Count > index2)
-                ManagedItems.InsertRange(index2, [.. list3, .. list1]);
-            else
-                ManagedItems.AddRange([.. list3, .. list1]);
-
+            List<IManagedItem> mi_l0 = ItemTreeNode.GetList(n_l0);
+            ManagedItems = mi_l0;
             UpdateSource();
-            int index4 = Source.IndexOf(target);
             SetProperties();
-            UpdateSource();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            SelectedIndex = index4;
         }
 
         public void Dispose()

@@ -89,12 +89,7 @@ namespace SuperExcitingCloneEffect.Classes
 
         public void UpdateOutput(EffectDescription effectDescription)
         {
-            List<IVideoEffect> effects = [.. Value.Effects];
-
-            foreach (IManagedItem mi in _ancestor)
-                effects.AddRange(mi.Effects);
-
-            _effectChain.SetInputAndEffects(_input, [.. effects]);
+            _effectChain.SetInputAndItems(_input, [Value, .. _ancestor]);
 
             DrawDescription drawDescription = new(
                 new Vector3(),

@@ -1,5 +1,4 @@
-﻿using SuperExcitingCloneEffect.Classes;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Plugin.Effects;
 
@@ -14,6 +13,8 @@ namespace SuperExcitingCloneEffect.Interfaces
         public bool Hide { get; set; }
 
         public string NameTag { get; set; }
+
+        public int Offset { get; set; }
 
         public string Comment { get; set; }
 

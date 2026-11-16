@@ -59,27 +59,24 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 SelectedSign.Visibility = Visibility.Hidden;
         }
 
-        public event EventHandler? GroupOpened;
-        public event EventHandler? GroupClosed;
+        private void UserControl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            UpdateGroupPullDownButton();
+        }
 
-        private void GroupViewChanged(object sender, RoutedEventArgs e)
+        public event EventHandler? GroupPullDownChanged;
+
+        private void UpdateGroupPullDownButton(object sender, RoutedEventArgs e)
         {
             if (DataContext is not CloneGroupValue gv)
                 return;
 
             gv.IsOpened = !gv.IsOpened;
-
-            if (gv.IsOpened)
-            {
-                GroupOpened?.Invoke(this, EventArgs.Empty);
-            }
-            else
-            {
-                GroupClosed?.Invoke(this, EventArgs.Empty);
-            }
+            UpdateGroupPullDownButton();
+            GroupPullDownChanged?.Invoke(gv, EventArgs.Empty);
         }
 
-        private void UserControl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void UpdateGroupPullDownButton()
         {
             if (DataContext is not CloneGroupValue gv)
                 return;

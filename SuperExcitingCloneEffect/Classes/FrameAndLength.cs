@@ -14,6 +14,12 @@ namespace SuperExcitingCloneEffect.Classes
             Length = description.ItemDuration.Frame;
         }
 
+        public FrameAndLength(FrameAndLength origin)
+        {
+            Frame = origin.Frame;
+            Length = origin.Length;
+        }
+
         public void CopyFrom(FrameAndLength origin)
         {
             Frame = origin.Frame;

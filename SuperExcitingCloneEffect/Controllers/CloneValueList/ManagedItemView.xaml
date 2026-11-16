@@ -42,7 +42,7 @@
             <Path x:Name="SelectedSign"
                   Visibility="Hidden"
                   VerticalAlignment="Center"
-                  Fill="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                  Fill="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
                   Data="M5,30 L5,0 L15,15 Z"/>
         </Grid>
         <Border Grid.Column="1"
@@ -141,18 +141,16 @@
         <Button x:Name="GroupViewChangeButton"
                 Grid.Row="1"
                 Grid.Column="1"
-                Click="GroupViewChanged"
+                Click="UpdateGroupPullDownButton"
                 Visibility="{Binding DataContext, ElementName=Root, Converter={StaticResource FolderIconVisiblityConverter}}">
             <Button.Content>
                 <Viewbox>
                     <Canvas Width="16" Height="8">
                         <Path x:Name="ClosedSign"
-                              Opacity="0.7"
                               Visibility="Visible"
                               Fill="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
                               Data="M8,0 L16,8 L0,8 Z"/>
                         <Path x:Name="OpenedSign"
-                              Opacity="0.7"
                               Visibility="Hidden"
                               Fill="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
                               Data="M8,8 L16,0 L0,0 Z"/>
