@@ -1,6 +1,7 @@
 ﻿using SuperExcitingCloneEffect.Interfaces;
 using SuperExcitingCloneEffect.Properties;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using YukkuriMovieMaker.Commons;
@@ -29,6 +30,12 @@ namespace SuperExcitingCloneEffect.Classes
         [EnumComboBox]
         public Blend Blend { get; set => Set(ref field, value); } = Blend.Normal;
 
+        [Display(GroupName = nameof(TextResource.GroupName_CloneValue), Name = nameof(TextResource.IManagedItem_Offset), ResourceType = typeof(TextResource))]
+        [FrameNumberEditor]
+        [DefaultValue(0)]
+        [Range(0, 99999)]
+        public int Offset { get; set => Set(ref field, value); }
+
         [Display(GroupName = nameof(TextResource.GroupName_CloneValue), Name = nameof(TextResource.IManagedItem_Comment), ResourceType = typeof(TextResource))]
         [TextEditor]
         public string Comment { get; set => Set(ref field, value); } = string.Empty;
@@ -48,6 +55,7 @@ namespace SuperExcitingCloneEffect.Classes
             Hide = origin.Hide;
             NameTag = origin.NameTag;
             Blend = origin.Blend;
+            Offset = origin.Offset;
             Comment = origin.Comment;
             Effects = YukkuriMovieMaker.Json.Json.GetClone(origin.Effects)!;
         }

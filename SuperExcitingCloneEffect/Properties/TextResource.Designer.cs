@@ -205,6 +205,15 @@ namespace SuperExcitingCloneEffect.Properties {
         }
         
         /// <summary>
+        ///   遅延 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        public static string IManagedItem_Offset {
+            get {
+                return ResourceManager.GetString("IManagedItem_Offset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   階層の異なる複数のパーツの描画順序をを同時に入れ替えることはできません。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         public static string PartValueListView_WarningA {

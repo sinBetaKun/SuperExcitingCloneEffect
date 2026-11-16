@@ -1,10 +1,9 @@
-﻿using System.Collections.Immutable;
-using System.Numerics;
+﻿using SuperExcitingCloneEffect.Interfaces;
+using System.Xml.Linq;
 using Vortice.Direct2D1;
 using Vortice.Direct2D1.Effects;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Player.Video;
-using YukkuriMovieMaker.Plugin.Effects;
 
 namespace SuperExcitingCloneEffect.Classes
 {
@@ -13,9 +12,7 @@ namespace SuperExcitingCloneEffect.Classes
         private readonly IGraphicsDevicesAndContext _devices;
         private readonly AffineTransform2D transform;
         private ID2D1Image? _input;
-        private List<(IVideoEffect effect, IVideoEffectProcessor processor)> _chain = [];
-        private TimelineItemSourceDescription? _lastTimelineSourceDescription;
-        private DrawDescription? _lastDrawDescription;
+        private List<VideoEffectChainNode> _nodes = [];
 
         public ID2D1Image Output;
 
@@ -26,108 +23,65 @@ namespace SuperExcitingCloneEffect.Classes
             Output = transform.Output;
         }
 
-        private void UpdateChain(ImmutableList<IVideoEffect> effects)
+        private void UpdateNodes(List<IManagedItem> items)
         {
-            var disposedIndex = from tuple in _chain
-                                where !effects.Contains(tuple.effect)
-                                select _chain.IndexOf(tuple) into i
+            IManagedItem[] mi_a0 = [.. _nodes.Select(x => x.Item)];
+            var disposedIndex = from item in mi_a0
+                                where !items.Exists(x => x == item)
+                                select mi_a0.IndexOf(item) into i
                                 orderby i descending
                                 select i;
+
             foreach (int index in disposedIndex)
             {
-                IVideoEffectProcessor processor = _chain[index].processor;
-                processor.ClearInput();
-                processor.Dispose();
-                _chain.RemoveAt(index);
+                VideoEffectChainNode node = _nodes[index];
+                node.Dispose();
+                _nodes.RemoveAt(index);
             }
 
-            List<IVideoEffect> keeped = _chain.Select((e_ep) => e_ep.effect).ToList();
-            List<(IVideoEffect effect, IVideoEffectProcessor processor)> newChain = new(effects.Count);
-            foreach (IVideoEffect effect in effects)
+            IManagedItem[] keeped = [.. _nodes.Select(x => x.Item)];
+            List<VideoEffectChainNode> newNodes = new(items.Count);
+            foreach (IManagedItem item in items)
             {
-                int index = keeped.IndexOf(effect);
-                newChain.Add(index < 0 ? (effect, effect.CreateVideoEffect(_devices)) : _chain[index]);
+                int index = keeped.IndexOf(item);
+                newNodes.Add(index < 0 ? new VideoEffectChainNode(_devices, item) : _nodes[index]);
             }
 
-            _chain = newChain;
+            _nodes.Clear();
+            _nodes.AddRange(newNodes);
         }
 
-        public void SetInputAndEffects(ID2D1Image? input, ImmutableList<IVideoEffect> effects)
+        public void SetInputAndItems(ID2D1Image? input, List<IManagedItem> items)
         {
             _input = input;
-            if (effects.Count > 0)
-            {
-                UpdateChain(effects);
-
-                if (_lastTimelineSourceDescription is not null && _lastDrawDescription is not null)
-                {
-                    UpdateOutputAndDescription(_lastTimelineSourceDescription, _lastDrawDescription);
-                    return;
-                }
-            }
-
-            transform.SetInput(0, input, true);
+            UpdateNodes(items);
         }
 
         public void ClearChain()
         {
-            foreach (var (_, processor) in _chain)
-            {
-                processor.ClearInput();
-                processor.Dispose();
-            }
-            _chain.Clear();
+            _nodes.ForEach(x => x.Dispose());
+            _nodes.Clear();
             transform.SetInput(0, _input, true);
-        }
-
-        public void ClearInput()
-        {
-            _input = null;
-            transform.SetInput(0, null, true);
-            foreach (var (_, processor) in _chain)
-            {
-                processor.ClearInput();
-                processor.Dispose();
-            }
-            _chain.Clear();
         }
 
         public DrawDescription UpdateOutputAndDescription(TimelineItemSourceDescription timelineSourceDescription, DrawDescription drawDescription)
         {
-            _lastTimelineSourceDescription = timelineSourceDescription;
-            _lastDrawDescription = drawDescription;
-
             if (_input == null)
             {
                 throw new InvalidOperationException("[VideoEffectChain] input is null.");
             }
 
             FrameAndLength fl = new(timelineSourceDescription);
-            DrawDescription desc = new(
-                drawDescription.Draw,
-                drawDescription.CenterPoint,
-                drawDescription.Zoom,
-                drawDescription.Rotation,
-                drawDescription.Camera,
-                drawDescription.ZoomInterpolationMode,
-                drawDescription.Opacity,
-                drawDescription.Invert,
-                drawDescription.Controllers
-                );
-
+            fl.Frame -= _nodes.Sum(x => x.Item.Offset);
+            DrawDescription desc = drawDescription;
             ID2D1Image? image = _input;
-            foreach (var (effect, processor) in _chain)
+
+            foreach (VideoEffectChainNode node in _nodes)
             {
-                if (effect.IsEnabled)
-                {
-                    IVideoEffectProcessor item = processor;
-                    item.SetInput(image);
-                    TimelineItemSourceDescription timeLineItemSourceDescription
-                        = new(timelineSourceDescription, fl.Frame, fl.Length, 0);
-                    EffectDescription effectDescription = new(timeLineItemSourceDescription, desc, 0, 1, 0, 1);
-                    desc = item.Update(effectDescription);
-                    image = item.Output;
-                }
+                node.SetInputAndUpdateChain(image);
+                desc = node.UpdateOutputAndDescription(timelineSourceDescription, desc, new FrameAndLength(fl));
+                image = node.Output;
+                fl.Frame += node.Item.Offset;
             }
 
             transform.SetInput(0, image, true);
@@ -139,12 +93,7 @@ namespace SuperExcitingCloneEffect.Classes
             transform.SetInput(0, null, true);
             Output.Dispose();
             transform.Dispose();
-
-            _chain.ForEach(i =>
-            {
-                i.processor.ClearInput();
-                i.processor.Dispose();
-            });
+            _nodes.ForEach(x => x.Dispose());
         }
     }
 }

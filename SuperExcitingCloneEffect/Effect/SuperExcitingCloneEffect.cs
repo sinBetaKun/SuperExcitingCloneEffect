@@ -16,7 +16,7 @@ namespace SuperExcitingCloneEffect.Effect
         isAviUtlSupported: false, ResourceType = typeof(TextResource))]
     public class SuperExcitingCloneEffect : VideoEffectBase
     {
-        public override string Label => TextResource.Plugin_Name + $"[{ManagedItems.OfType<CloneValue>().Count()}]";
+        public override string Label => TextResource.Plugin_Name + $" ({ManagedItems.OfType<CloneValue>().Count()})";
 
         [Display]
         [CloneValueList(PropertyEditorSize = PropertyEditorSize.FullWidth)]

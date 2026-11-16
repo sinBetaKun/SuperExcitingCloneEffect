@@ -138,6 +138,9 @@
   <data name="IManagedItem_CloneEffects" xml:space="preserve">
     <value>クローン個別エフェクト</value>
   </data>
+  <data name="IManagedItem_Offset" xml:space="preserve">
+    <value>遅延</value>
+  </data>
   <data name="IManagedItem_GroupEffects" xml:space="preserve">
     <value>グループ内のクローン個別エフェクト</value>
   </data>

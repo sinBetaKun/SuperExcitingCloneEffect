@@ -42,7 +42,7 @@
             <Path x:Name="SelectedSign"
                   Visibility="Hidden"
                   VerticalAlignment="Center"
-                  Fill="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                  Fill="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
                   Data="M5,30 L5,0 L15,15 Z"/>
         </Grid>
         <Border Grid.Column="1"
@@ -148,11 +148,11 @@
                     <Canvas Width="16" Height="8">
                         <Path x:Name="ClosedSign"
                               Visibility="Visible"
-                              Fill="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                              Fill="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
                               Data="M8,0 L16,8 L0,8 Z"/>
                         <Path x:Name="OpenedSign"
                               Visibility="Hidden"
-                              Fill="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                              Fill="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
                               Data="M8,8 L16,0 L0,0 Z"/>
                     </Canvas>
                 </Viewbox>

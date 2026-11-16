@@ -14,6 +14,8 @@ namespace SuperExcitingCloneEffect.Interfaces
 
         public string NameTag { get; set; }
 
+        public int Offset { get; set; }
+
         public string Comment { get; set; }
 
         public ImmutableList<IVideoEffect> Effects { get; set; }

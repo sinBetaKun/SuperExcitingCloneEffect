@@ -2,11 +2,9 @@
 using SuperExcitingCloneEffect.Classes;
 using SuperExcitingCloneEffect.Interfaces;
 using SuperExcitingCloneEffect.Properties;
+using System.Collections.Immutable;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Xml;
 using YukkuriMovieMaker.Commons;
 
 namespace SuperExcitingCloneEffect.Controllers.CloneValueList
@@ -20,7 +18,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         public event EventHandler? EndEdit;
 
         private static string _clipboad = "[]";
-        private static int _selectedInClip = -1;
 
         private static JsonSerializerSettings GetJsonSetting =>
             new() { TypeNameHandling = TypeNameHandling.Auto };
@@ -76,11 +73,13 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             {
                 HazardIcon.ToolTip = TextResource.PartValueListView_WarningA;
                 HazardIcon.Visibility = Visibility.Visible;
+                DuplicateButton.IsEnabled = false;
             }
             else
             {
                 HazardIcon.ToolTip = string.Empty;
                 HazardIcon.Visibility = Visibility.Hidden;
+                DuplicateButton.IsEnabled = true;
             }
 
             if (selecteds.Count > 1)
@@ -90,7 +89,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 CutButton.IsEnabled = true;
                 CopyButton.IsEnabled = true;
                 PasteButton.IsEnabled = false;
-                DuplicateButton.IsEnabled = false;
             }
             else
             {
@@ -103,14 +101,12 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                     RemoveButton.IsEnabled = false;
                     CutButton.IsEnabled = false;
                     CopyButton.IsEnabled = false;
-                    DuplicateButton.IsEnabled = false;
                 }
                 else
                 {
                     RemoveButton.IsEnabled = true;
                     CutButton.IsEnabled = true;
                     CopyButton.IsEnabled = true;
-                    DuplicateButton.IsEnabled = cmv != ItemMovable.Hazard;
                 }
             }
         }
@@ -143,18 +139,22 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             UpdateButtons();
         }
 
-        private void UpdateSelecting()
+        private void SetSelecteds(List<IManagedItem> items)
+        {
+            ItemList.SelectedItems.Clear();
+            items.ForEach(x => ItemList.SelectedItems.Add(x));
+
+        }
+
+        private void PartValueView_GroupPullDownChanged(object sender, EventArgs e)
         {
             if (DataContext is not CloneValueListViewModel vm)
                 return;
 
-            ItemList.SelectedItems.Clear();
-
-            if (vm.SelectedIndexes.Contains(-1))
+            if (sender is not CloneGroupValue)
                 return;
 
-            foreach (int i_1 in vm.SelectedIndexes)
-                ItemList.SelectedItems.Add(ItemList.Items[i_1]);
+            vm.UpdateSource();
         }
 
         public List<IManagedItem> GetSelecteds()
@@ -172,7 +172,9 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             CloneValue cv_0 = new();
-            vm.InsertItems([cv_0], cv_0);
+            vm.InsertItems([cv_0], ItemList.SelectedIndex);
+            ItemList.SelectedItems.Clear();
+            ItemList.SelectedItems.Add(cv_0);
         }
 
         private void GroupAddButton_Click(object sender, RoutedEventArgs e)
@@ -181,7 +183,8 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             CloneGroupValue gv_0 = new();
-            vm.InsertItems([gv_0], gv_0);
+            vm.InsertItems([gv_0], ItemList.SelectedIndex);
+            SetSelecteds([gv_0]);
         }
 
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
@@ -190,6 +193,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             vm.RemoveItems(GetSelecteds());
+            ItemList.SelectedItems.Clear();
         }
 
         private void UpButton_Click(object sender, RoutedEventArgs e)
@@ -197,7 +201,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             if (DataContext is not CloneValueListViewModel vm)
                 return;
 
-            vm.MoveItems(GetSelecteds(), (IManagedItem)ItemList.SelectedItem, true);
+            vm.MoveUpItems(GetSelecteds());
             UpdateButtons();
         }
 
@@ -206,7 +210,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             if (DataContext is not CloneValueListViewModel vm)
                 return;
 
-            vm.MoveItems(GetSelecteds(), (IManagedItem)ItemList.SelectedItem, false);
+            vm.MoveDownItems(GetSelecteds());
             UpdateButtons();
         }
 
@@ -215,19 +219,17 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             if (DataContext is not CloneValueListViewModel vm)
                 return;
 
-            (List<IManagedItem> mi_l0, int i_0) = GetCloneOfSelected();
+            List<IManagedItem> mi_l0 = GetCloneOfSelected();
             SetClipped(mi_l0);
-            _selectedInClip = i_0;
             vm.RemoveItems(GetSelecteds());
-            ItemList.SelectedIndex = -1;
+            ItemList.SelectedItems.Clear();
             UpdateButtons();
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            (List<IManagedItem> mi_l0, int i_0) = GetCloneOfSelected();
+            List<IManagedItem> mi_l0 = GetCloneOfSelected();
             SetClipped(mi_l0);
-            _selectedInClip = i_0;
             UpdateButtons();
         }
 
@@ -237,9 +239,8 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 return;
 
             List<IManagedItem> mi_l0 = GetClipped();
-            IManagedItem firstSelected = mi_l0[_selectedInClip];
-            vm.InsertItems(mi_l0, firstSelected);
-            UpdateSelecting();
+            vm.InsertItems(mi_l0, ItemList.SelectedIndex);
+            SetSelecteds(mi_l0);
             UpdateButtons();
         }
 
@@ -248,16 +249,16 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             if (DataContext is not CloneValueListViewModel vm)
                 return;
 
-            (List<IManagedItem> mi_l0, int i_0) = GetCloneOfSelected();
-            vm.InsertItems(mi_l0, mi_l0[i_0]);
-            UpdateSelecting();
+            List<IManagedItem> mi_l0 = GetCloneOfSelected();
+            vm.InsertItems(mi_l0, GetSelecteds().Max(vm.Source.IndexOf));
+            SetSelecteds(mi_l0);
             UpdateButtons();
         }
 
-        private (List<IManagedItem>, int) GetCloneOfSelected()
+        private List<IManagedItem> GetCloneOfSelected()
         {
             if (DataContext is not CloneValueListViewModel vm)
-                return ([], -1);
+                return [];
 
             List<IManagedItem> mi_l0 = [];
             IManagedItem? firstSelected = (IManagedItem)ItemList.SelectedItem;
@@ -283,7 +284,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             }
 
             List<IManagedItem> mi_l3 = [.. mi_l0.Distinct().OrderBy(vm.ManagedItems.IndexOf)];
-            int i_0 = mi_l3.IndexOf(firstSelected);
             List<(IManagedItem, IManagedItem)> tp_l0 = [];
 
             foreach (IManagedItem mi_0 in mi_l3)
@@ -334,7 +334,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 }
             }
 
-            return ([.. tp_l0.Select(item => item.Item2)], i_0);
+            return [.. tp_l0.Select(item => item.Item2)];
         }
     }
 }

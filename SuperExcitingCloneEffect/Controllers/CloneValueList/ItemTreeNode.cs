@@ -3,7 +3,7 @@ using SuperExcitingCloneEffect.Interfaces;
 
 namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 {
-    internal class ItemTreeNode(IManagedItem item, sbyte selected)
+    internal class ItemTreeNode(IManagedItem item)
     {
         /// <summary>
         /// このノードが対応するクローン
@@ -19,11 +19,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         /// 子ノード
         /// </summary>
         public readonly List<ItemTreeNode> Children = [];
-
-        /// <summary>
-        /// 選択状態。最初に選択されたものなら1, 追加選択なら2, 未選択なら0
-        /// </summary>
-        public readonly sbyte Selected = selected;
 
         /// <summary>
         /// 構造内からパーツに対応するノードを探し出す。
@@ -55,11 +50,9 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         /// </summary>
         /// <param name="nodes">リストにしたい木構造</param>
         /// <returns>木構造をリスト化したものと選択された状態のパーツ</returns>
-        public static ItemTreeArgs GetList(IEnumerable<ItemTreeNode> nodes)
+        public static List<IManagedItem> GetList(IEnumerable<ItemTreeNode> nodes)
         {
             List<IManagedItem> list = [];
-            List<IManagedItem> additionalSelecteds = [];
-            IManagedItem? selected = null;
 
             foreach (ItemTreeNode node in nodes)
             {
@@ -68,33 +61,18 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                 item.Depth = 0;
                 list.Add(item);
 
-                switch (node.Selected)
-                {
-                    case 1:
-                        selected = item;
-                        break;
+                List<IManagedItem> descendants = GetList(node.Children);
 
-                    case 2:
-                        additionalSelecteds.Add(item);
-                        break;
-                }
-
-                ItemTreeArgs descendants = GetList(node.Children);
-
-                foreach (IManagedItem descendant in descendants.List)
+                foreach (IManagedItem descendant in descendants)
                 {
                     descendant.Depth++;
                     descendant.ParentIndex += list.Count;
                 }
 
-                list.AddRange(descendants.List);
-                additionalSelecteds.AddRange(descendants.AdditionalSelecteds);
-
-                if (descendants.Selected is not null)
-                    selected = descendants.Selected;
+                list.AddRange(descendants);
             }
 
-            return new ItemTreeArgs(list, selected, additionalSelecteds);
+            return list;
         }
 
         /// <summary>
@@ -126,7 +104,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         /// このノードの子要素になるか、ならずに同階層に差し込まれる。
         /// 自身が始祖である場合はここでは挿入処理ができないので拒否。
         /// </summary>
-        /// <param name="list">挿入するノード群</param>
+        /// <param name="nodes">挿入するノード群</param>
         /// <returns>挿入に失敗した場合、真。</returns>
         public bool InsertToHere(List<ItemTreeNode> nodes)
         {
@@ -159,25 +137,16 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         /// <summary>
         /// パーツリストを木構造に変換する。
         /// </summary>
-        /// <param name="args">変換したいリスト情報</param>
+        /// <param name="list">変換したいリスト情報</param>
         /// <returns>リストを木構造に変換したもの</returns>
-        public static List<ItemTreeNode> GetTree(ItemTreeArgs args)
+        public static List<ItemTreeNode> GetTree(List<IManagedItem> list)
         {
             List<ItemTreeNode> ret = [];
             List<ItemTreeNode> descendants = [];
 
-            foreach (IManagedItem item in args.List)
+            foreach (IManagedItem item in list)
             {
-                sbyte selected;
-
-                if (args.Selected == item)
-                    selected = 1;
-                else if (args.AdditionalSelecteds.Contains(item))
-                    selected = 2;
-                else
-                    selected = 0;
-
-                ItemTreeNode node = new(item, selected);
+                ItemTreeNode node = new(item);
                 ret.Add(node);
                 int i = item.ParentIndex;
 

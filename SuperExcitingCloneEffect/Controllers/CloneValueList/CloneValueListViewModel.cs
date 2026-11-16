@@ -19,10 +19,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 
         public List<IManagedItem> Source { get;  set => Set(ref field, value); } = [];
 
-        public int SelectedIndex { get; set => Set(ref field, value); } = -1;
-
-        public ImmutableList<int> SelectedIndexes { get; set => Set(ref field, value); } = [];
-
         public CloneValueListViewModel(ItemProperty[] properties)
         {
             _properties = properties;
@@ -37,32 +33,6 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
         {
             var otherProperties = _properties.Skip(1);
             foreach (var property in otherProperties)
-                property.SetValue(DeepCloneManagedItems(ManagedItems).ToImmutableList());
-        }
-
-        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == _properties[0].PropertyInfo.Name)
-                UpdateClones();
-        }
-
-        private void UpdateClones()
-        {
-            ImmutableList<IManagedItem> list = _properties[0].GetValue<ImmutableList<IManagedItem>>() ?? [];
-
-            if (!ManagedItems.SequenceEqual(list))
-            {
-                ManagedItems = [.. list];
-            }
-
-            int index = SelectedIndex;
-            UpdateSource();
-            SelectedIndex = index;
-        }
-
-        public void SetProperties()
-        {
-            foreach (var property in _properties)
                 property.SetValue(DeepCloneManagedItems(ManagedItems).ToImmutableList());
         }
 
@@ -81,15 +51,33 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             return mi_l0;
         }
 
-        public void UpdateSource()
+        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            Source = [.. ItemTreeNode.GetVisibleList(ItemTreeNode.GetTree(new(ManagedItems, null, [])))];
+            if (e.PropertyName == _properties[0].PropertyInfo.Name)
+                UpdateClones();
         }
 
-        public void UpdateSource(ItemTreeArgs vta)
+        private void UpdateClones()
         {
-            Source = [.. ItemTreeNode.GetVisibleList(ItemTreeNode.GetTree(vta))];
-            SelectedIndexes = [.. vta.AdditionalSelecteds.Prepend(vta.Selected).Select(x => Source.IndexOf(x!))];
+            ImmutableList<IManagedItem> list = _properties[0].GetValue<ImmutableList<IManagedItem>>() ?? [];
+
+            if (!ManagedItems.SequenceEqual(list))
+            {
+                ManagedItems = [.. list];
+            }
+
+            UpdateSource();
+        }
+
+        public void SetProperties()
+        {
+            foreach (var property in _properties)
+                property.SetValue(ManagedItems.ToImmutableList());
+        }
+
+        public void UpdateSource()
+        {
+            Source = [.. ItemTreeNode.GetVisibleList(ItemTreeNode.GetTree(ManagedItems))];
         }
 
         public List<IManagedItem> GetVisibleItem(int parentIndex = -1, int depth = 0)
@@ -141,9 +129,9 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             return list1;
         }
 
-        private (List<ItemTreeNode>, List<ItemTreeNode>) FindSelectedNodes(List<IManagedItem> items, IManagedItem? lastSelected)
+        private (List<ItemTreeNode>, List<ItemTreeNode>) FindSelectedNodes(List<IManagedItem> items)
         {
-            List<ItemTreeNode> n_l0 = ItemTreeNode.GetTree(new(ManagedItems, lastSelected, [.. items.Where(x => x != lastSelected)]));
+            List<ItemTreeNode> n_l0 = ItemTreeNode.GetTree(ManagedItems);
             List<ItemTreeNode> n_l1 = [];
 
             foreach (IManagedItem mi_0 in items)
@@ -156,26 +144,24 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
                             n_l1.Add(n_2);
             }
 
-            return (n_l0, n_l1);
+            return (n_l0, [.. n_l1.OrderBy(x => ManagedItems.IndexOf(x.Item))]);
         }
 
-        public void InsertItems(List<IManagedItem> items, IManagedItem firstSelected)
+        public void InsertItems(List<IManagedItem> items, int selectedIndex)
         {
-            ItemTreeArgs vta_0 = new(items, firstSelected, [.. items.Except([firstSelected])]);
-
-            if (SelectedIndex < -1 || SelectedIndex >= Source.Count)
+            if (selectedIndex < -1 || selectedIndex >= Source.Count)
                 return;
 
-            List<ItemTreeNode> n_l0 = ItemTreeNode.GetTree(new(ManagedItems, null, []));
-            List<ItemTreeNode> n_l1 = ItemTreeNode.GetTree(vta_0);
+            List<ItemTreeNode> n_l0 = ItemTreeNode.GetTree(ManagedItems);
+            List<ItemTreeNode> n_l1 = ItemTreeNode.GetTree(items);
 
-            if (SelectedIndex < 0)
+            if (selectedIndex < 0)
             {
                 n_l0.AddRange(n_l1);
             }
             else
             {
-                IManagedItem mi_0 = Source[SelectedIndex];
+                IManagedItem mi_0 = Source[selectedIndex];
 
                 if (n_l0.FirstOrDefault(x => x.Item == mi_0) is ItemTreeNode n_0)
                 {
@@ -220,9 +206,9 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             }
 
             BeginEdit?.Invoke(this, EventArgs.Empty);
-            ItemTreeArgs vta_1 = ItemTreeNode.GetList(n_l0);
-            ManagedItems = vta_1.List;
-            UpdateSource(vta_1);
+            List<IManagedItem> mi_l0 = ItemTreeNode.GetList(n_l0);
+            ManagedItems = mi_l0;
+            UpdateSource();
             SetProperties();
             EndEdit?.Invoke(this, EventArgs.Empty);
             return;
@@ -230,10 +216,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 
         public void RemoveItems(IEnumerable<IManagedItem> items)
         {
-            if (SelectedIndex < -1 || SelectedIndex >= Source.Count)
-                return;
-
-            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items], null);
+            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items]);
 
             foreach (ItemTreeNode n_0 in n_l1)
             {
@@ -248,7 +231,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             }
 
             BeginEdit?.Invoke(this, EventArgs.Empty);
-            ManagedItems = ItemTreeNode.GetList(n_l0).List;
+            ManagedItems = ItemTreeNode.GetList(n_l0);
             UpdateSource();
             SetProperties();
             EndEdit?.Invoke(this, EventArgs.Empty);
@@ -257,7 +240,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 
         public ItemMovable CanMoveItem(IEnumerable<IManagedItem> items)
         {
-            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items], null);
+            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items]);
 
             if (n_l1.Count == 0)
                 return ItemMovable.Neither;
@@ -291,42 +274,48 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             }
         }
 
-        public void MoveItems(IEnumerable<IManagedItem> items, IManagedItem lastSelected, bool isUp)
+        public void MoveUpItems(List<IManagedItem> items)
         {
-            IManagedItem mi_0 = Source[SelectedIndex];
-            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items], lastSelected); // CanMoveUp/DownItemがtrueを返す前提
+            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items]);
             List<ItemTreeNode> n_l2 = n_l1.First().Parent?.Children ?? n_l0;
-            (int, ItemTreeNode)[] tp_a0 = [.. n_l1.Select(x => (n_l2.IndexOf(x), x)).OrderBy(x => x.Item1)];
-            (int, ItemTreeNode)[] tp_a1 = new (int, ItemTreeNode)[tp_a0.Length];
-            tp_a1[0] = tp_a0[0];
 
-            for (int i_0 = 1; i_0 < tp_a0.Length; i_0++)
-                tp_a1[i_0] = (tp_a0[i_0].Item1 - tp_a0[i_0 - 1].Item1 - 1, tp_a0[i_0].Item2);
-
-            List<ItemTreeNode> n_l3 = [.. n_l2.Except(n_l1)];
-            List<ItemTreeNode> n_l4 = [.. n_l3[..(tp_a1[0].Item1 + (isUp ? -1 : 1))]];
-            n_l3.RemoveRange(0, n_l4.Count);
-            n_l4.Add(tp_a1[0].Item2);
-
-            foreach ((int i_0, ItemTreeNode n_0) in tp_a1.Skip(1))
+            for (int i = 1; i < n_l2.Count && 0 < n_l1.Count; i++)
             {
-                IEnumerable<ItemTreeNode> n_e0 = n_l3.Take(i_0);
-                n_l3.RemoveRange(0, i_0);
-                n_l4.AddRange(n_e0);
-                n_l4.Add(n_0);
+                if (n_l2[i] == n_l1.First())
+                {
+                    (n_l2[i - 1], n_l2[i]) = (n_l2[i], n_l2[i - 1]);
+                    n_l1.RemoveAt(0);
+                }
             }
 
-            n_l4.AddRange(n_l3);
-            n_l2.Clear();
-            n_l2.AddRange(n_l4);
-
             BeginEdit?.Invoke(this, EventArgs.Empty);
-            ItemTreeArgs vta_0 = ItemTreeNode.GetList(n_l0);
-            ManagedItems = vta_0.List;
-            UpdateSource(vta_0);
+            List<IManagedItem> mi_l0 = ItemTreeNode.GetList(n_l0);
+            ManagedItems = mi_l0;
+            UpdateSource();
             SetProperties();
             EndEdit?.Invoke(this, EventArgs.Empty);
-            return;
+        }
+
+        public void MoveDownItems(List<IManagedItem> items)
+        {
+            (List<ItemTreeNode> n_l0, List<ItemTreeNode> n_l1) = FindSelectedNodes([.. items]);
+            List<ItemTreeNode> n_l2 = n_l1.First().Parent?.Children ?? n_l0;
+
+            for (int i = n_l2.Count - 2; i >= 0 && 0 < n_l1.Count; i--)
+            {
+                if (n_l2[i] == n_l1.Last())
+                {
+                    (n_l2[i + 1], n_l2[i]) = (n_l2[i], n_l2[i + 1]);
+                    n_l1.RemoveAt(n_l1.Count - 1);
+                }
+            }
+
+            BeginEdit?.Invoke(this, EventArgs.Empty);
+            List<IManagedItem> mi_l0 = ItemTreeNode.GetList(n_l0);
+            ManagedItems = mi_l0;
+            UpdateSource();
+            SetProperties();
+            EndEdit?.Invoke(this, EventArgs.Empty);
         }
 
         public void Dispose()

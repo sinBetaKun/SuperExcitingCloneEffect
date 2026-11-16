@@ -64,6 +64,8 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
             UpdateGroupPullDownButton();
         }
 
+        public event EventHandler? GroupPullDownChanged;
+
         private void UpdateGroupPullDownButton(object sender, RoutedEventArgs e)
         {
             if (DataContext is not CloneGroupValue gv)
@@ -71,6 +73,7 @@ namespace SuperExcitingCloneEffect.Controllers.CloneValueList
 
             gv.IsOpened = !gv.IsOpened;
             UpdateGroupPullDownButton();
+            GroupPullDownChanged?.Invoke(gv, EventArgs.Empty);
         }
 
         private void UpdateGroupPullDownButton()

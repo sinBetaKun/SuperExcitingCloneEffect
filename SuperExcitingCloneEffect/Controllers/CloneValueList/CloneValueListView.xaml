@@ -38,15 +38,15 @@
                          SelectionChanged="ItemList_SelectionChanged"
                          VirtualizingPanel.IsVirtualizing="True"
                          SelectionMode="Extended"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         SelectedIndex="{Binding SelectedIndex}">
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <local:ManagedItemView IsSelected="{
                                                     Binding RelativeSource={RelativeSource AncestorType=ListBoxItem},
                                                     Path=IsSelected}"
                                                    BeginEdit="PropertiesEditor_BeginEdit" 
-                                                   EndEdit="PropertiesEditor_EndEdit"/>
+                                                   EndEdit="PropertiesEditor_EndEdit"
+                                                   GroupPullDownChanged="PartValueView_GroupPullDownChanged"/>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                     <ListBox.ContextMenu>
@@ -118,7 +118,8 @@
                            Width="4"
                            VerticalAlignment="Stretch"
                            Fill="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
-                <c:PropertiesEditor Name="propertiesEditor"
+                <c:PropertiesEditor Grid.Column="1"
+                                    Name="propertiesEditor"
                                     Target="{Binding ElementName=ItemList,Path=SelectedValue}"
                                     BeginEdit="PropertiesEditor_BeginEdit" 
                                     EndEdit="PropertiesEditor_EndEdit">
